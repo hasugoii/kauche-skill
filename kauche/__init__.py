@@ -18,7 +18,8 @@ from .shopify import ShopifyStorefront, handle_from, share_link
 from .auth import FirebaseAnonymousAuth
 from .account import AccountSession, LoginRequired, SessionExpired
 from .weblogin import run_web_login
+from .win import win_scan
 
 __all__ = ["Kauche", "KaucheAPI", "ConnectError", "gid",
-           "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth", "AccountSession", "LoginRequired", "SessionExpired", "run_web_login"]
-__version__ = "0.6.0"
+           "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth", "AccountSession", "LoginRequired", "SessionExpired", "run_web_login", "win_scan"]
+__version__ = "0.7.0"
