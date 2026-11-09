@@ -22,4 +22,4 @@ from .win import win_scan
 
 __all__ = ["Kauche", "KaucheAPI", "ConnectError", "gid",
            "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth", "AccountSession", "LoginRequired", "SessionExpired", "run_web_login", "win_scan"]
-__version__ = "0.8.0"
+__version__ = "0.9.0"

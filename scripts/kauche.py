@@ -80,7 +80,7 @@ def main():
     g.add_argument("--google-id-token", help="Google OpenID id_token")
     g.add_argument("--apple-id-token", help="Apple id_token")
     p.add_argument("--signup", action="store_true", help="also run customer/v1/CompleteSignIn to provision your KAUCHE profile")
-    p = sub.add_parser("win", help="rank products by a review-velocity win-score (competitor research)"); p.add_argument("--limit", type=int, default=8); p.add_argument("--collection", help="Shopify sale-collection handle to scan (shows vendor/shop); default = home time sale"); p.add_argument("--no-price", action="store_true")
+    p = sub.add_parser("win", help="rank products by a review-velocity win-score (competitor research)"); p.add_argument("--limit", type=int, default=8); p.add_argument("--search", help="keyword to scan your niche (e.g. さつまいも, iphone ケーブル)"); p.add_argument("--collection", help="Shopify sale-collection handle to scan; default = home time sale"); p.add_argument("--no-price", action="store_true")
     sub.add_parser("logout")
     sub.add_parser("whoami")
     args = ap.parse_args()
@@ -208,7 +208,7 @@ def run(args, k):
         dump(k.shop_products(args.partner_id, args.limit))
     elif args.cmd == "win":
         from kauche.win import win_scan, WIN_MIN_REVIEWS, RATING_GATE
-        rows = win_scan(limit=args.limit, with_price=not args.no_price, collection=args.collection, k=k)
+        rows = win_scan(limit=args.limit, with_price=not args.no_price, collection=args.collection, search=args.search, k=k)
         if args.json:
             dump(rows)
         else:

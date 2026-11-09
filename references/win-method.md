@@ -24,8 +24,8 @@ core signal here.
 
 Reviews are coin-rewarded on KAUCHE, so lifetime review count tracks cumulative sales.
 Reported: price, discount, rating, reviews_total, reviews_28d_min (momentum), hot flag,
-vendor (shop), share link. Source = a Shopify sale collection (`collection=<handle>`,
-reveals competitor `vendor`) or the home time sale.
+vendor (shop), share link. Source: keyword (`search=<kw>` — your niche), a Shopify sale collection
+(`collection=<handle>`, reveals competitor `vendor`), or the home time sale.
 
 NOTE: `ListProductFeedbacks` returns ~10 recent reviews per page, so reviews_28d is a
 page-capped lower bound used only as a "hot/recent" flag; the ranking uses total_rating_count.
@@ -55,3 +55,9 @@ real listing decision.
 - v2 (after `kauche login`): seed candidates from `sales_ranking`; add competitor density
   via `ListSimilarProducts` (how many shops sell the same item → prefer low competition).
 - v3: track scans over time (store snapshots) to compute true velocity and trend.
+
+## Niche scan
+
+`win --search "さつまいも"` keyword-scans your niche (Shopify search HTML, anonymous;
+the predictive JSON API is 417-disabled). Returns the niche's products ranked by reviews
+so you see the incumbents and the price band to beat.

@@ -74,12 +74,28 @@ def _seed_from_timesale(k, limit):
     return out
 
 
-def win_scan(limit: int = 8, with_price: bool = True, collection: str = None, k: Kauche | None = None) -> list:
-    """Score products by win_score, best first. Source = a Shopify sale collection
-    (`collection=<handle>`, shows competitor `vendor`) or the home time sale (default).
+def _seed_from_search(k, query, limit):
+    out = []
+    for p in k.shop.search(query, limit=limit):
+        out.append({"gid": f"gid://shopify/Product/{p['id']}", "handle": p["handle"],
+                    "title": p.get("title"), "price": p.get("price")})
+    return out
+
+
+def win_scan(limit: int = 8, with_price: bool = True, collection: str = None,
+             search: str = None, k: Kauche | None = None) -> list:
+    """Score products by win_score, best first. Source (pick one):
+      search=<keyword>     keyword search (your niche: 'さつまいも', 'iphone ケーブル'...)
+      collection=<handle>  a Shopify sale collection (shows competitor vendor)
+      default              the home time sale
     Fully anonymous."""
     k = k or Kauche()
-    seeds = _seed_from_collection(k, collection, limit) if collection else _seed_from_timesale(k, limit)
+    if search:
+        seeds = _seed_from_search(k, search, limit)
+    elif collection:
+        seeds = _seed_from_collection(k, collection, limit)
+    else:
+        seeds = _seed_from_timesale(k, limit)
     rows = []
     for s in seeds:
         gid, handle = s.get("gid"), s.get("handle")

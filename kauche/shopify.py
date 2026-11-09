@@ -95,6 +95,59 @@ class ShopifyStorefront:
         s["product_gid"] = p["id"]  # numeric Shopify product id -> feed to KaucheAPI.reviews()
         return s
 
+    def search(self, query: str, limit: int = 12) -> list:
+        """Keyword search via the storefront search page (anonymous). Returns
+        [{id, handle, title, price}]. The predictive JSON API is disabled (417) for this
+        shop, so this parses the HTML results; id is the Shopify numeric product id."""
+        import html as _html
+        q = urllib.parse.quote(query)
+        url = f"{STORE}/search?q={q}&type=product"
+        raw = self._fetch_text(url)
+        chunks = raw.split("StandardCardNoMediaLink--")[1:]
+        out, seen = [], set()
+        for ch in chunks:
+            mid = re.match(r"(\d{6,})", ch)
+            mh = re.search(r"/products/([0-9a-f-]{36})", ch)
+            if not (mid and mh):
+                continue
+            pid, handle = mid.group(1), mh.group(1)
+            if pid in seen:
+                continue
+            seen.add(pid)
+            mt = re.search(r">\s*([^<]{3,})</a>", ch)
+            title = _html.unescape(mt.group(1).strip()) if mt else None
+            mp = re.search(r"¥([0-9,]+)", ch)
+            price = mp.group(1).replace(",", "") if mp else None
+            out.append({"id": int(pid), "handle": handle, "title": title, "price": price,
+                        "share_link": share_link(handle)})
+            if len(out) >= limit:
+                break
+        return out
+
+    def _fetch_text(self, url: str) -> str:
+        cp = self._cache(url) + ".html"
+        if os.path.exists(cp) and time.time() - os.path.getmtime(cp) < self.cache_ttl:
+            with open(cp, encoding="utf-8", errors="replace") as f:
+                return f.read()
+        for attempt, extra in enumerate([0, 5, 10, 20, 40]):
+            wait = max(0.0, self._last + self.interval - time.time()) + extra
+            if wait:
+                time.sleep(wait)
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "ja"})
+            self._last = time.time()
+            try:
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    txt = r.read().decode("utf-8", "replace")
+            except urllib.error.HTTPError as e:
+                if e.code == 429 and attempt < 4:
+                    continue
+                raise
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            with open(cp, "w", encoding="utf-8") as f:
+                f.write(txt)
+            return txt
+        raise RuntimeError("Shopify rate limit on search")
+
     @staticmethod
     def summarize(p: dict) -> dict:
         v = (p.get("variants") or [{}])[0]
