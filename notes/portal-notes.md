@@ -20,3 +20,15 @@
 - Collection `products_count` values are huge (e.g. 3,142,930) — treat as "pool", never paginate to
   the end.
 - Collections with `[使っていない]` in the title are abandoned by staff; skip them.
+
+2026-11-09 (internal API reverse-engineering, APK v2.164.0)
+
+- APK sourced as APKPure XAPK (mirrors block curl: APKPure Cloudflare Turnstile, apkcombo/apkmonk NXDOMAIN in sandbox; user downloaded via browser).
+- Native Kotlin app, R8-obfuscated (classes -> defpackage/xx.java). `jadx --no-res` on the 115MB base dex = 76k java files. Retrofit interfaces (com.kauche.core.network) KEEP @POST("customer/v1/...") path strings and *_FIELD_NUMBER constants even under obfuscation -> that's how endpoints + field names were recovered.
+- `libsigner.so` is the Adjust SDK signer, NOT a Kauche request signer. No native request signing.
+- Backend is Connect-RPC (connectrpc): app uses ProtoConverterFactory (protobuf) but the server content-negotiates and returns JSON when Accept: application/json. So you can call everything with JSON bodies (snake_case) and read JSON responses. Error envelope {"code","message","details"}.
+- Auth: Firebase anonymous (project x-asia-kauche-prod, key in resources.arsc). signUp with the API key -> idToken -> Authorization: Bearer. App Check NOT enforced on customer API (only Play Integrity on the walk/step feature).
+- Products are Shopify products; app refers by shopify_product_gid (gid://shopify/Product/<id>). shopDomain + storefrontAccessToken come from the Launch RPC (protobuf LaunchResponse) at startup.
+- Validation trick for discovering field names: send a wrong value; code 3 messages sometimes name "XxxRequest.FieldName" and the rule (e.g. NoOfProducts range [1,200]). A field that passes validation but 500s (code 13) means the JSON key is correct but the method needs more context / a real user.
+- Anonymous works for: GetHomeContent, ListProductFeedbacks, ListProductCategories, product_search_settings, coupons. Returns code 13 for anon: GetProduct, ListProductsBySalesRanking, ListProductsByNewArrival (need a signed-in user).
+- Some time-sale products are app-exclusive: 404 on the public Shopify storefront.

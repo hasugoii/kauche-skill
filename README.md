@@ -58,3 +58,25 @@ và trả lời cách app hoạt động (coin, coupon, farm, phí bán hàng). 
 đây: mua trong app bằng share link. Chi tiết bẫy xem `notes/portal-notes.md`.
 
 License: MIT.
+
+## Internal API (v0.2)
+
+Beyond the Shopify storefront, this now wraps KAUCHE's **internal Connect-RPC API**
+(`api.kauche.com`), reverse-engineered from the Android app v2.164.0:
+
+- Anonymous Firebase auth (no signup) — `kauche/auth.py`.
+- Reviews & ratings, home time sale, product categories, coupons: verified working.
+- Sales ranking / new arrivals / GetProduct: mapped, but need a signed-in user (return
+  `code 13` anonymously).
+- Full endpoint list in `references/kauche-endpoints.txt`; map + field schemas in
+  `references/internal-api.md`.
+
+```python
+from kauche import Kauche
+k = Kauche()
+k.time_sale()
+k.reviews("gid://shopify/Product/15426646638760")
+```
+
+Read-only. Not affiliated with KAUCHE, Inc. Respect their ToS; for personal shopping
+assistance and research, not large-scale scraping.

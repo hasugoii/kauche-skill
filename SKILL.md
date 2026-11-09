@@ -1,91 +1,96 @@
 ---
 name: kauche
-description: Browse, search and monitor the Japanese shopping app KAUCHE (カウシェ, com.kauche.kauche) from any agent — daily deals (日替わりセール), coupon collections, Kauche Farm harvest-target products, product details and app share links — through its public Shopify storefront. Also explains how the app works (coins, coupons, farm quests, seller fees). Use when a task mentions Kauche/カウシェ, Kauche Farm/カウシェファーム, or wants Japanese food/daily-goods deals from this app. Read-only; checkout happens only inside the app.
+description: Query the Japanese shopping app KAUCHE (カウシェ, com.kauche.kauche) from any agent — product catalog, prices, search, product detail, daily deals, Kauche-Farm target products, user reviews & ratings, sales ranking, new arrivals, time sale, and seller/shop listings — through its reverse-engineered internal API plus its public Shopify storefront. Use for competitor price research, monitoring your own listings, or tracking Kauche sales. Also explains how the app works (coins, coupons, farm, seller fees). Read-only; checkout happens only in the app.
 ---
 
 # KAUCHE (カウシェ) skill
 
-KAUCHE is a Japanese mobile-only social-commerce app (iOS/Android, KAUCHE Inc.,
-8M+ downloads). It has **no web shop and no public API**, but its catalog lives on a
-Shopify store, `kauche.myshopify.com`, whose standard storefront JSON endpoints are
-open. This skill wraps those endpoints and documents the app's mechanics.
+KAUCHE is a Japanese mobile-only shopping app (KAUCHE Inc., 8M+ downloads). It has
+no web shop. This skill gives agents two ways in, reverse-engineered from the app
+(v2.164.0):
 
-What you **can** do here: list collections, list products in a collection, get a
-product with price / 参考価格 / stock / description / images, find today's dated sale
-collections, find Kauche-Farm harvest-target products, and produce a share link that
-opens the product in the app.
+1. **Shopify storefront** (`kauche.myshopify.com`) — public, no auth. The catalog:
+   products, **prices**, product detail, collections, daily-sale buckets. Best for
+   competitor prices, your own listings, sale tracking.
+2. **Internal Connect-RPC API** (`api.kauche.com`) — anonymous Firebase auth. The
+   app-only data: **user reviews & ratings**, home **time sale**, sales **ranking**,
+   new arrivals, product categories, **seller/shop** products, coupons.
 
-What you **cannot** do here: log in, see a user's coins/coupons/farm, add to cart, or
-buy. Every product page on the web says 「アプリで購入」. Hand the user the share link.
+Checkout, coins, writing reviews, farm actions — all stay in the app. This is read-only.
 
-## Quick start
+## Quick start (CLI)
 
 ```bash
-python3 scripts/kauche.py collections --grep higawari     # dated daily-sale collections
-python3 scripts/kauche.py deals                            # today's (JST) dated sales + monthly campaigns
+python3 scripts/kauche.py deals                      # today's dated sale collections (Shopify)
+python3 scripts/kauche.py collections --grep higawari
 python3 scripts/kauche.py products shiire-higawari-0228 --available
-python3 scripts/kauche.py product <handle-or-share-url>
-python3 scripts/kauche.py farm-targets                     # 100%OFF harvest-coupon target products
-python3 scripts/kauche.py link <handle>                    # -> https://kauche.com/products/<handle>
-python3 scripts/kauche.py raw "/products.json?limit=5&page=2"
+python3 scripts/kauche.py product <handle-or-share-url> --reviews   # Shopify detail + Kauche rating
+python3 scripts/kauche.py reviews gid://shopify/Product/15426646638760
+python3 scripts/kauche.py timesale                   # home 日替わりセール products
+python3 scripts/kauche.py categories                 # kauche.py coupons
+python3 scripts/kauche.py shop <partner_id>          # a seller's products
+python3 scripts/kauche.py api customer/v1/GetHomeContent '{}'   # any Connect-RPC method
 ```
 
-Add `--json` to any command for machine-readable output. Python 3.9+, stdlib only.
+Library:
+```python
+from kauche import Kauche
+k = Kauche()
+k.collection_products("shiire-higawari-0228", limit=10)          # Shopify, no auth
+k.product("https://kauche.com/products/<handle>", with_reviews=True)
+k.reviews("gid://shopify/Product/15426646638760")                # ratings + reviews
+k.time_sale()
+```
 
-## Rules that matter
+Python 3.9+, stdlib only. Add `--json` to any command. First internal-API call does an
+anonymous Firebase sign-in (cached in `~/.cache/kauche-api`).
 
-1. **Rate limit is harsh.** Shopify answers `429 local_rate_limited` / `TOO_MANY_REQUESTS`
-   after a burst (roughly 8–10 quick requests from one IP) and then blocks for
-   several minutes. The script paces requests (`KAUCHE_INTERVAL`, default 1.5 s),
-   retries with backoff and caches for 10 min (`KAUCHE_CACHE_TTL`). Do not loop over
-   thousands of products. Plan 1–5 requests per user question.
-2. **Prices are JPY, tax included**, given as strings without decimals (`"4090"` = ¥4,090).
-   `compare_at_price` is the 参考価格 shown as a strike-through; discount % is derived.
-3. **`vendor` is the seller shop name** (Kauche is a marketplace; each 販売会社 ships its own
-   orders). `product_type` is the top-level category in Japanese.
-4. **Tags carry structured IDs**: `categoryID:<n>`, `partnerID:<uuid>`, `productCode:<code>`,
-   plus plain Japanese category breadcrumbs.
-5. **Title markers**: `【カウシェファーム収穫対象商品】` = can be claimed with a farm
-   100%OFF coupon; `【ご新規さん限定商品】` = first-purchase-only price (often ¥50).
-6. **Collections are campaign buckets, not categories.** Handles follow staff naming:
-   `shiire-higawari-MMDD` (daily sale), `3day-/4day-/5day-MMDD` (multi-day sale),
-   `shiire-final-MMDD`, `*coupon-NNoff`, `YYMM_dodonto` / `YYMM_dai_sale` (monthly),
-   `YYMM_crosscell` (water-reward campaign), `farm_plant_gift_<uuid>` (farm coupon
-   targets), `beisia_*` (coupon-eligible). Dated handles are created by hand, so
-   `deals` may find nothing for a given day — then show the latest `higawari` ones.
-7. **Search**: `search/suggest.json` currently returns `417 Unsupported buyer locale`
-   on this shop. Treat `search` as best-effort; the reliable path is
-   collection → products → filter by title locally. See `references/storefront-api.md`.
-8. **Share link** `https://kauche.com/products/<handle>` is what the app itself uses
-   when a user shares; it opens in the app (universal link) or falls back to the
-   web mirror. Always give this link, never the `myshopify.com` URL.
-9. Be honest about freshness: data is a 10-minute cache of a public mirror. Stock,
-   price and whether a product is still a quest/farm target can differ in the app.
+## What works, and what doesn't (be honest with the user)
+
+- **Catalog/prices/detail/collections**: Shopify, reliable, no auth. A few app-exclusive
+  items (some time-sale products) are not on the public storefront → 404; detail for
+  those isn't retrievable anonymously.
+- **Reviews & ratings** (`ListProductFeedbacks`), **time sale** (`GetHomeContent`),
+  **categories**, **coupons**, **search settings**: verified working with an anonymous token.
+- **Sales ranking / new arrivals / GetProduct**: mapped from the app but return
+  `code 13 Internal` for anonymous users — they likely need a signed-in (LINE/Apple/
+  Google) account. The CLI surfaces the error cleanly. Don't claim these work anonymously.
+- **Search by keyword**: the Shopify predictive endpoint returns `417` for this shop;
+  the Kauche text search is farm-quest-scoped. For keyword lookups, browse a collection
+  (Shopify) or a ranking/category and filter titles locally. Say which you used.
+
+## Key rules
+
+1. **Rate limits are harsh on both backends.** Shopify 429s after ~10 quick requests
+   (blocks minutes); the client paces (`KAUCHE_INTERVAL`) and caches 10 min. The Kauche
+   API is paced too. Plan a few requests per question; never crawl.
+2. **Prices are JPY, tax included**, strings without decimals (`"4090"` = ¥4,090).
+   `compare_at_price` is the 参考価格 (strike-through); discount % is derived.
+3. **`vendor` = seller shop**; `partnerID:<uuid>` tag = that shop's id for `shop`/partner calls.
+   Products are Shopify; the Kauche API keys them by `shopify_product_gid`.
+4. **Share link** `https://kauche.com/products/<handle>` opens the item in the app. Give
+   this to users, not the `myshopify.com` URL.
+5. Data is a read of public/app endpoints; the app may differ. Not affiliated with KAUCHE.
 
 ## Workflows
 
-**"What's on sale today on Kauche?"** → `deals` (optionally `--date MMDD`). Summarize
-by discount % and availability, link each item with its share link.
-
-**"Find X on Kauche"** → try `search X`; if 417/empty, pick a likely collection
-(`collections --grep` on a campaign word, or the big coupon collections such as
-`2000円以下の商品一覧`, `beisia_20-off`), run `products <handle> --limit 250 --json`
-and filter titles/tags locally. Say which collections you looked in.
-
-**"Which products can I get free with my farm coupon?"** → `farm-targets`, plus
-`references/kauche-app.md` section *Farm* for the coupon rules (30-day validity,
-shipping may still be charged, cannot be applied after ordering).
-
-**"How does Kauche Farm / coins / coupons work?"** → answer from
-`references/kauche-app.md` (sourced from the official FAQ, with URLs). Do not invent
-reward amounts.
-
-**"Should I sell on Kauche?"** → `references/kauche-app.md` section *Seller program*
-(0 fixed fee, 10% sales + 3.5% payment fee).
+- **Competitor price / my listing** → `product <handle> --reviews`, or `products <collection>`
+  for a batch. Prices from Shopify, rating/reviews from Kauche.
+- **What's on sale** → `deals` (dated collections) and `timesale` (home time sale).
+- **Reviews of a product** → `reviews <gid>` (get the gid from `product --json` → `product_gid`,
+  or from `timesale`). Returns aggregate rating + individual posts.
+- **A seller's range** → `shop <partner_id>` (partner_id from a product's `partner_id`).
+- **How coins/coupons/farm/selling work** → `references/kauche-app.md` (official FAQ, with URLs).
+- **Anything else** → `api <method> <json>` for any of the 157 endpoints in
+  `references/kauche-endpoints.txt`.
 
 ## Files
 
-- `scripts/kauche.py` — the CLI (stdlib only).
-- `references/storefront-api.md` — endpoints, JSON shapes, tag semantics, rate-limit notes.
-- `references/kauche-app.md` — app features, coin/coupon/farm rules, seller program, hostnames.
-- `notes/portal-notes.md` — traps found while reverse-engineering; add yours there.
+- `kauche/` — the library: `auth.py` (anon Firebase), `connect.py` (Connect-RPC client),
+  `shopify.py` (storefront), `client.py` (Hybrid facade).
+- `scripts/kauche.py` — unified CLI.
+- `references/internal-api.md` — endpoints, auth, Connect-RPC, field schemas, what's verified.
+- `references/storefront-api.md` — Shopify endpoints, JSON shapes, collection naming, rate limits.
+- `references/kauche-app.md` — app features, coin/coupon/farm rules, seller program.
+- `references/kauche-endpoints.txt` — all 157 internal endpoints.
+- `notes/portal-notes.md` — reverse-engineering traps; append new ones.
