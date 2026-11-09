@@ -45,3 +45,9 @@
 
 - Full Firebase web config from resources.arsc: apiKey AIzaSyCMT60jygkdhgCKGgoWHq6HiJP8ZVsx-6U, authDomain x-asia-kauche-prod.firebaseapp.com, projectId x-asia-kauche-prod, senderId 283378856219, bucket x-asia-kauche-prod.appspot.com, web OAuth client 283378856219-6i7lsqu39dc3cbb8feg9ic4sjrk6vglh.apps.googleusercontent.com.
 - Browser-login = local http server on 127.0.0.1 serving a Firebase JS page; signInWithPopup(Google/Apple) from localhost (a default Firebase authorized domain), page POSTs idToken+refreshToken back to /token. Verified server/page/callback/persist locally with a simulated callback; the Google popup itself needs a real human login (not testable here).
+
+2026-11-09 (MCP server)
+
+- Packaged as an MCP server (kauche/mcp_server.py, FastMCP). Tools wrap the Hybrid client; account-gated tools return {"status":"login_required"} via a _guard() that catches LoginRequired/SessionExpired/ConnectError(7,13,16 while anon).
+- Login as MCP tool: kauche_login starts a non-blocking WebLogin (refactored weblogin.py: WebLogin.start() returns URL immediately, background handler persists AccountSession on /token POST). Token never returned to the MCP client — only saved to ~/.cache/kauche-api/account.json.
+- pyproject.toml: entry points `kauche` (cli) and `kauche-mcp`; optional dep mcp[cli].

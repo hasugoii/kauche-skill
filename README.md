@@ -98,3 +98,19 @@ k.reviews("gid://shopify/Product/15426646638760")
 
 Read-only. Not affiliated with KAUCHE, Inc. Respect their ToS; for personal shopping
 assistance and research, not large-scale scraping.
+
+
+## MCP server
+
+Use KAUCHE from Claude Desktop / Claude Code / any MCP client:
+
+```bash
+pip install mcp
+python3 -m kauche.mcp_server        # stdio
+```
+
+Tools: `kauche_deals`, `kauche_collections`, `kauche_product`, `kauche_reviews`,
+`kauche_timesale`, `kauche_categories`, `kauche_sales_ranking`, `kauche_shop_products`,
+`kauche_api`, `kauche_login`, `kauche_whoami`. The `kauche_login` tool returns a browser
+sign-in URL and captures the token locally (never returned to the client). Config and
+details in `references/mcp.md`.

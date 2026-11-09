@@ -1,0 +1,22 @@
+[project]
+name = "kauche-skill"
+version = "0.6.0"
+description = "Reverse-engineered client, CLI and MCP server for the KAUCHE (カウシェ) shopping app"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2.0"]
+
+[project.scripts]
+kauche = "kauche.cli:main"
+kauche-mcp = "kauche.mcp_server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["kauche"]

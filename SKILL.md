@@ -51,6 +51,18 @@ Checkout, coins, writing reviews, farm actions — all stay in the app. This is 
 tell the user "please run `python3 scripts/kauche.py login` and sign in, then say done" →
 on their confirmation, re-run the original command. Nothing sensitive crosses the chat.
 
+## MCP server
+
+This skill is also an MCP server, so Claude Desktop / Claude Code / any MCP client can use
+KAUCHE as tools (`kauche_deals`, `kauche_product`, `kauche_reviews`, `kauche_sales_ranking`,
+`kauche_login`, ...). The `kauche_login` tool returns a sign-in URL; the user opens it,
+signs in, and the token is saved locally (never returned to the client). Setup and the tool
+list are in `references/mcp.md`:
+
+```bash
+pip install mcp && python3 -m kauche.mcp_server
+```
+
 ## Quick start (CLI)
 
 ```bash

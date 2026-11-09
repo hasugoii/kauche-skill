@@ -67,59 +67,84 @@ document.getElementById("apple").onclick = () => go(new OAuthProvider("apple.com
 </script></body></html>"""
 
 
-def run_web_login(port: int = 0, timeout: int = 300, open_browser: bool = True) -> AccountSession:
-    result = {}
-    done = threading.Event()
-    page = _PAGE.replace("__CONFIG__", json.dumps(FIREBASE_WEB_CONFIG))
+class WebLogin:
+    """A running local login server. Non-blocking: start() returns a URL immediately;
+    the token is captured in the background and persisted to an AccountSession. Good for
+    MCP (one tool returns the link, another checks status)."""
 
-    class Handler(http.server.BaseHTTPRequestHandler):
-        def log_message(self, *a):
-            pass
+    def __init__(self, port: int = 0):
+        self._result = {}
+        self.done = threading.Event()
+        self.session = None
+        page = _PAGE.replace("__CONFIG__", json.dumps(FIREBASE_WEB_CONFIG))
+        outer = self
 
-        def do_GET(self):
-            if urllib.parse.urlparse(self.path).path in ("/", "/index.html"):
-                body = page.encode()
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
-            else:
-                self.send_response(404)
-                self.end_headers()
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
 
-        def do_POST(self):
-            if urllib.parse.urlparse(self.path).path != "/token":
-                self.send_response(404)
+            def do_GET(self):
+                if urllib.parse.urlparse(self.path).path in ("/", "/index.html"):
+                    body = page.encode()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            def do_POST(self):
+                if urllib.parse.urlparse(self.path).path != "/token":
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                n = int(self.headers.get("Content-Length", 0))
+                try:
+                    data = json.loads(self.rfile.read(n).decode())
+                except ValueError:
+                    data = {}
+                ok = bool(data.get("idToken") and data.get("refreshToken"))
+                self.send_response(200 if ok else 400)
+                self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
-                return
-            n = int(self.headers.get("Content-Length", 0))
+                if ok:
+                    outer._result.update(data)
+                    try:
+                        outer.session = AccountSession.from_tokens(
+                            data["idToken"], data["refreshToken"], email=data.get("email") or None)
+                    finally:
+                        outer.done.set()
+
+        self._srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler)
+        self.url = f"http://127.0.0.1:{self._srv.server_address[1]}/"
+
+    def start(self, open_browser: bool = True) -> str:
+        threading.Thread(target=self._srv.serve_forever, daemon=True).start()
+        if open_browser:
             try:
-                data = json.loads(self.rfile.read(n).decode())
-            except ValueError:
-                data = {}
-            ok = bool(data.get("idToken") and data.get("refreshToken"))
-            if ok:
-                result.update(data)
-            self.send_response(200 if ok else 400)
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.end_headers()
-            if ok:
-                done.set()
+                webbrowser.open(self.url)
+            except Exception:
+                pass
+        return self.url
 
-    srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    actual_port = srv.server_address[1]
-    url = f"http://127.0.0.1:{actual_port}/"
-    t = threading.Thread(target=srv.serve_forever, daemon=True)
-    t.start()
-    print(f"Open this link to sign in (also opening it in your browser):\n  {url}")
-    if open_browser:
+    def wait(self, timeout: int = 300) -> AccountSession:
+        got = self.done.wait(timeout)
+        self._srv.shutdown()
+        if not got:
+            raise TimeoutError("web login timed out; no token received")
+        return self.session
+
+    def stop(self):
         try:
-            webbrowser.open(url)
+            self._srv.shutdown()
         except Exception:
             pass
-    got = done.wait(timeout)
-    srv.shutdown()
-    if not got:
-        raise TimeoutError("web login timed out; no token received")
-    return AccountSession.from_tokens(result["idToken"], result["refreshToken"], email=result.get("email") or None)
+
+
+def run_web_login(port: int = 0, timeout: int = 300, open_browser: bool = True) -> AccountSession:
+    wl = WebLogin(port)
+    print(f"Open this link to sign in (also opening it in your browser):\n  {wl.url}")
+    wl.start(open_browser=open_browser)
+    return wl.wait(timeout)
