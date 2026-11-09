@@ -14,7 +14,7 @@ class Kauche:
     @property
     def api(self) -> KaucheAPI:
         if self._api is None:
-            self._api = KaucheAPI()
+            self._api = KaucheAPI.for_account()  # signed-in session if present, else anonymous
         return self._api
 
     # catalog (Shopify, no auth)

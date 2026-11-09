@@ -32,3 +32,11 @@
 - Validation trick for discovering field names: send a wrong value; code 3 messages sometimes name "XxxRequest.FieldName" and the rule (e.g. NoOfProducts range [1,200]). A field that passes validation but 500s (code 13) means the JSON key is correct but the method needs more context / a real user.
 - Anonymous works for: GetHomeContent, ListProductFeedbacks, ListProductCategories, product_search_settings, coupons. Returns code 13 for anon: GetProduct, ListProductsBySalesRanking, ListProductsByNewArrival (need a signed-in user).
 - Some time-sale products are app-exclusive: 404 on the public Shopify storefront.
+
+2026-11-09 (login/account auth)
+
+- Firebase providers in app: Google (signInWithIdp google.com), LINE (custom-token), phone (reCAPTCHA, not headless), anonymous.
+- LINE: account/v1/StartLineLogin{channel_id,device_uuid}->{nonce_id,nonce,channel_id}; user does LINE OIDC with nonce; account/v1/CompleteLineLogin{nonce_id,id_token}->{firebase_custom_token}; Firebase signInWithCustomToken.
+- account/v1 is JSON (KotlinSerialization), same host api.kauche.com/api. customer/v1 is protobuf-but-JSON-negotiable.
+- customer/v1/CompleteSignIn provisions the KAUCHE customer profile for the firebase uid (req type x53 had no simple scalar fields; likely nested/empty). Likely why anon gets code 13 on ranking/GetProduct.
+- Library approach: never handle user's password; accept refresh-token/custom-token/google-id-token/apple-id-token and persist refresh token (securetoken). Verified request shapes against Firebase with bogus creds (INVALID_CUSTOM_TOKEN / INVALID_IDP_RESPONSE). Did NOT create a real account.

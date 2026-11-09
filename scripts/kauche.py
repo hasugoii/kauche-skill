@@ -69,6 +69,15 @@ def main():
     p = sub.add_parser("newarrivals"); p.add_argument("--n", type=int, default=20)
     p = sub.add_parser("shop"); p.add_argument("partner_id"); p.add_argument("--limit", type=int, default=20)
     p = sub.add_parser("api"); p.add_argument("method"); p.add_argument("body", nargs="?", default="{}")
+    p = sub.add_parser("login", help="establish a signed-in session (you provide the credential)")
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument("--refresh-token", help="Firebase refresh token from your own session")
+    g.add_argument("--custom-token", help="Firebase custom token (e.g. from LINE CompleteLineLogin)")
+    g.add_argument("--google-id-token", help="Google OpenID id_token")
+    g.add_argument("--apple-id-token", help="Apple id_token")
+    p.add_argument("--signup", action="store_true", help="also run customer/v1/CompleteSignIn to provision your KAUCHE profile")
+    sub.add_parser("logout")
+    sub.add_parser("whoami")
     args = ap.parse_args()
     k = Kauche()
     try:
@@ -80,8 +89,15 @@ def main():
                   "or the product is unavailable.)", file=sys.stderr)
         sys.exit(1)
     except urllib.error.HTTPError as e:
-        print(f"Shopify HTTP {e.code}: {args.cmd} — product/collection may be app-exclusive "
-              f"(not on the public storefront).", file=sys.stderr)
+        host = (e.url or "").split("/")[2] if "://" in (e.url or "") else "?"
+        detail = ""
+        try:
+            detail = " — " + e.read().decode(errors="replace")[:200]
+        except Exception:
+            pass
+        if "myshopify" in host:
+            detail = " — product/collection may be app-exclusive (not on the public storefront)." or detail
+        print(f"HTTP {e.code} from {host}{detail}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -159,11 +175,35 @@ def run(args, k):
     elif args.cmd == "shop":
         dump(k.shop_products(args.partner_id, args.limit))
     elif args.cmd == "api":
-        try:
-            dump(KaucheAPI().call(args.method, json.loads(args.body)))
-        except ConnectError as e:
-            print(f"error: {e}", file=sys.stderr)
-            sys.exit(1)
+        dump(KaucheAPI.for_account().call(args.method, json.loads(args.body)))
+
+    elif args.cmd == "login":
+        from kauche import AccountSession
+        if args.refresh_token:
+            s = AccountSession.from_refresh_token(args.refresh_token)
+        elif args.custom_token:
+            s = AccountSession.from_custom_token(args.custom_token)
+        elif args.google_id_token:
+            s = AccountSession.from_google_id_token(args.google_id_token)
+        else:
+            s = AccountSession.from_apple_id_token(args.apple_id_token)
+        print("logged in; session cached.")
+        if args.signup:
+            try:
+                KaucheAPI(auth=s).complete_signin()
+                print("CompleteSignIn ok (KAUCHE profile provisioned).")
+            except ConnectError as e:
+                print(f"CompleteSignIn: {e}", file=sys.stderr)
+
+    elif args.cmd == "logout":
+        from kauche import AccountSession
+        AccountSession().logout()
+        print("logged out.")
+
+    elif args.cmd == "whoami":
+        from kauche import AccountSession
+        s = AccountSession()
+        print("signed-in session" if s.logged_in() else "anonymous (no login); run `kauche login ...`")
 
 
 if __name__ == "__main__":

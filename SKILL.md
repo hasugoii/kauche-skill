@@ -52,12 +52,30 @@ anonymous Firebase sign-in (cached in `~/.cache/kauche-api`).
   those isn't retrievable anonymously.
 - **Reviews & ratings** (`ListProductFeedbacks`), **time sale** (`GetHomeContent`),
   **categories**, **coupons**, **search settings**: verified working with an anonymous token.
-- **Sales ranking / new arrivals / GetProduct**: mapped from the app but return
+- **Sales ranking / new arrivals / GetProduct**: need a signed-in user (see Login); they return
   `code 13 Internal` for anonymous users — they likely need a signed-in (LINE/Apple/
   Google) account. The CLI surfaces the error cleanly. Don't claim these work anonymously.
 - **Search by keyword**: the Shopify predictive endpoint returns `417` for this shop;
   the Kauche text search is farm-quest-scoped. For keyword lookups, browse a collection
   (Shopify) or a ranking/category and filter titles locally. Say which you used.
+
+## Login (for authenticated endpoints)
+
+Sales ranking, new arrivals, GetProduct and your own listings/orders need a signed-in
+Firebase user. The account owner can establish a session (Claude never handles your
+password — you bring a credential you got yourself):
+
+```bash
+python3 scripts/kauche.py login --refresh-token <firebase-refresh-token>   # universal
+python3 scripts/kauche.py login --google-id-token <google-oidc-id-token>
+python3 scripts/kauche.py login --custom-token <firebase-custom-token> --signup
+python3 scripts/kauche.py whoami        # python3 scripts/kauche.py logout
+```
+
+After login the same commands (ranking, newarrivals, product) use the signed-in session
+automatically (cached in `~/.cache/kauche-api/account.json`, auto-refreshed). LINE flow,
+Apple, and provisioning (`CompleteSignIn`) are in `references/internal-api.md`. Phone auth
+is not reproducible headlessly. Do login only for your own account.
 
 ## Key rules
 

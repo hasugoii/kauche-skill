@@ -51,10 +51,18 @@ def gid(product_or_variant_id, kind: str = "Product") -> dict:
 class KaucheAPI:
     """Thin Connect-RPC client with helpers for the useful customer endpoints."""
 
-    def __init__(self, auth: FirebaseAnonymousAuth | None = None, interval: float = 0.6):
+    def __init__(self, auth=None, interval: float = 0.6):
+        # auth is any object with .id_token(): FirebaseAnonymousAuth or AccountSession.
         self.auth = auth or FirebaseAnonymousAuth()
         self.interval = interval
         self._last = 0.0
+
+    @classmethod
+    def for_account(cls, **kw) -> "KaucheAPI":
+        """Use the persisted signed-in session if present, else anonymous."""
+        from .account import AccountSession
+        s = AccountSession()
+        return cls(auth=s if s.logged_in() else None, **kw)
 
     # ---- core ----
     def call(self, method: str, body: dict | None = None) -> dict:
@@ -165,3 +173,22 @@ class KaucheAPI:
     def partner(self, partner_id: str) -> dict:
         """GET customer/v1/partners/{id}: shop/seller detail."""
         return self.get("customer/v1/partners", partner_id)
+
+    # ---- account provisioning / LINE login (account owner only) ----
+    def complete_signin(self, body: dict | None = None) -> dict:
+        """customer/v1/CompleteSignIn: provision the KAUCHE customer record for the
+        current Firebase user. Run once after a real (Google/LINE) sign-in. This is a
+        write that creates your KAUCHE guest/customer profile — run it yourself only."""
+        return self.call("customer/v1/CompleteSignIn", body or {})
+
+    def start_line_login(self, channel_id: str, device_uuid: str) -> dict:
+        """account/v1/StartLineLogin -> {nonce_id, nonce, channel_id}. Use `nonce` when
+        you perform LINE login in the LINE app/SDK yourself; keep `nonce_id`."""
+        return self.call("account/v1/StartLineLogin", {"channel_id": channel_id, "device_uuid": device_uuid})
+
+    def complete_line_login(self, nonce_id: str, line_id_token: str) -> str:
+        """account/v1/CompleteLineLogin -> firebase_custom_token. Feed it to
+        AccountSession.from_custom_token. `line_id_token` is the OIDC id_token LINE gives
+        you after you authorize with the nonce from start_line_login."""
+        r = self.call("account/v1/CompleteLineLogin", {"nonce_id": nonce_id, "id_token": line_id_token})
+        return r["firebase_custom_token"]

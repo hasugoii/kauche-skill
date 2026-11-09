@@ -16,7 +16,8 @@ from .client import Kauche
 from .connect import KaucheAPI, ConnectError, gid
 from .shopify import ShopifyStorefront, handle_from, share_link
 from .auth import FirebaseAnonymousAuth
+from .account import AccountSession
 
 __all__ = ["Kauche", "KaucheAPI", "ConnectError", "gid",
-           "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth"]
-__version__ = "0.2.0"
+           "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth", "AccountSession"]
+__version__ = "0.3.0"

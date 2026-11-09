@@ -93,3 +93,44 @@ APK (APKPure XAPK) → unzip → `jadx` decompile of the base dex → grep for
 (Shopify SDK), and `*_FIELD_NUMBER` (message fields). Live probe (anonymous token)
 confirmed auth, absence of App Check, Connect-JSON behavior, and response shapes.
 See `../notes/portal-notes.md`.
+
+## Signed-in sessions (login)
+
+Endpoints that return `code 13` for anonymous users need a real Firebase user. The app
+signs in with Google, LINE or phone; all produce a Firebase ID token used as
+`Authorization: Bearer`. The library (`kauche/account.py`) lets the account owner
+establish such a session without Claude handling a password — you bring a credential you
+obtained yourself and it is exchanged for a Firebase token via the standard Identity
+Toolkit REST API, then persisted (refresh token) and auto-refreshed.
+
+Credential sources (`AccountSession.from_*` / `kauche login`):
+- `--refresh-token <rt>` — universal: a Firebase refresh token from your own signed-in
+  session. Refreshed via `securetoken.googleapis.com` indefinitely.
+- `--custom-token <ct>` — `accounts:signInWithCustomToken`. The LINE flow yields one.
+- `--google-id-token <idt>` — `accounts:signInWithIdp`, providerId `google.com`.
+- `--apple-id-token <idt>` — same, providerId `apple.com`.
+
+Verified 2026-11-09: the signInWithCustomToken / signInWithIdp / securetoken request
+shapes are correct (bogus credentials are rejected with `INVALID_CUSTOM_TOKEN` /
+`INVALID_IDP_RESPONSE`, i.e. the plumbing reaches Firebase auth). Issuing a real token
+needs your own credential; privileged KAUCHE endpoints were not exercised with a real
+account (none was created).
+
+### LINE login flow (from the app)
+
+1. `account/v1/StartLineLogin` `{channel_id, device_uuid}` → `{nonce_id, nonce, channel_id}`.
+2. You authorize in LINE (LINE SDK/app) using `channel_id` + `nonce`; LINE returns an
+   OIDC `id_token` bound to that nonce.
+3. `account/v1/CompleteLineLogin` `{nonce_id, id_token}` → `{firebase_custom_token}`.
+4. `AccountSession.from_custom_token(firebase_custom_token)`.
+
+Helpers: `KaucheAPI.start_line_login`, `KaucheAPI.complete_line_login`.
+
+### Provisioning the KAUCHE customer record
+
+After a real sign-in, `customer/v1/CompleteSignIn` provisions your KAUCHE customer
+profile (needed by some endpoints). `kauche login --signup` runs it. This is a write
+that creates your profile — run it yourself; the library does not do it unprompted.
+
+Phone auth (Firebase PhoneAuthProvider) needs reCAPTCHA/Play Integrity and is not
+reproducible headlessly.
