@@ -9,6 +9,21 @@ KAUCHE has no web shop and no public API. Its catalog is a Shopify store whose
 standard storefront JSON is public; this skill wraps it (read-only, no login) and
 documents the app's rules from the official FAQ. Purchases still happen in the app.
 
+## First run (for agents)
+
+After you clone this, most commands work immediately (anonymous session): catalog,
+prices, deals, reviews, time sale, categories. For **account-gated** data (sales ranking,
+new arrivals, product detail, the user's own listings) the CLI returns a "needs login"
+message — when that happens, **ask the user** to run:
+
+```bash
+python3 scripts/kauche.py login
+```
+
+That opens their browser to sign in with Google/Apple; the token is saved and refreshed
+automatically. Don't attempt to log in for them. `python3 scripts/kauche.py whoami` shows
+the current state. See `SKILL.md` → "Setup when you pull this skill".
+
 ## Install
 
 Claude Code (personal skill):

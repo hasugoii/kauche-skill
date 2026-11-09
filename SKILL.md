@@ -18,6 +18,27 @@ no web shop. This skill gives agents two ways in, reverse-engineered from the ap
 
 Checkout, coins, writing reviews, farm actions — all stay in the app. This is read-only.
 
+## Setup when you pull this skill (read first)
+
+- **No setup needed for most things.** Catalog, prices, deals, reviews, time sale,
+  categories and coupons work immediately with an automatic anonymous session.
+- **Login is only needed for account-gated data** — sales ranking, new arrivals,
+  GetProduct detail, and the user's own listings/orders. These return a "needs login"
+  error while anonymous.
+- **When login is needed, do NOT try to log in yourself.** Stop and tell the user, in
+  their language, to run this and come back:
+
+  ```bash
+  python3 scripts/kauche.py login
+  ```
+
+  It opens their browser, they sign in with Google or Apple, and the token is saved
+  automatically. Then re-run the command. Check state anytime with
+  `python3 scripts/kauche.py whoami`. The CLI's error messages already say this; surface
+  that instruction to the user rather than attempting credentials on their behalf.
+- You never handle the user's password. If the browser can't be used, the user can log in
+  headlessly with `login --refresh-token` / `--google-id-token` (see references).
+
 ## Quick start (CLI)
 
 ```bash

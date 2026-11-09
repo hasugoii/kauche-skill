@@ -21,4 +21,4 @@ from .weblogin import run_web_login
 
 __all__ = ["Kauche", "KaucheAPI", "ConnectError", "gid",
            "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth", "AccountSession", "run_web_login"]
-__version__ = "0.4.0"
+__version__ = "0.4.1"

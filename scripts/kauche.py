@@ -86,9 +86,12 @@ def main():
         run(args, k)
     except ConnectError as e:
         print(f"KAUCHE API error: {e}", file=sys.stderr)
-        if e.code == 13:
-            print("(code 13 Internal: this method often needs a signed-in, non-anonymous user, "
-                  "or the product is unavailable.)", file=sys.stderr)
+        from kauche import AccountSession
+        if e.code in (7, 13, 16) and not AccountSession().logged_in():
+            prog = "python3 " + os.path.relpath(__file__)
+            print("\n🔑 This needs a signed-in KAUCHE account (you are anonymous now).", file=sys.stderr)
+            print(f"   Ask the user to run:  {prog} login", file=sys.stderr)
+            print("   It opens a browser; they sign in with Google/Apple; then retry this command.", file=sys.stderr)
         sys.exit(1)
     except urllib.error.HTTPError as e:
         host = (e.url or "").split("/")[2] if "://" in (e.url or "") else "?"
@@ -208,7 +211,11 @@ def run(args, k):
     elif args.cmd == "whoami":
         from kauche import AccountSession
         s = AccountSession()
-        print("signed-in session" if s.logged_in() else "anonymous (no login); run `kauche login ...`")
+        if s.logged_in():
+            print("signed-in session (account-gated endpoints enabled).")
+        else:
+            prog = "python3 " + os.path.relpath(__file__)
+            print(f"anonymous. Catalog/reviews/deals work. For ranking/your listings, run:  {prog} login")
 
 
 if __name__ == "__main__":
