@@ -53,8 +53,9 @@ def print_products(rows):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--json", action="store_true")
-    sub = ap.add_subparsers(dest="cmd", required=True)
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--json", action="store_true", help="machine-readable output")
+    sub = ap.add_subparsers(dest="cmd", required=True, parser_class=lambda **kw: argparse.ArgumentParser(parents=[common], **kw))
     sub.add_parser("collections").add_argument("--grep"); sub.choices["collections"].add_argument("--all", action="store_true")
     p = sub.add_parser("products"); p.add_argument("collection"); p.add_argument("--limit", type=int, default=50); p.add_argument("--page", type=int, default=1); p.add_argument("--available", action="store_true")
     p = sub.add_parser("product"); p.add_argument("handle"); p.add_argument("--reviews", action="store_true")
