@@ -66,11 +66,15 @@ Firebase user. The account owner can establish a session (Claude never handles y
 password — you bring a credential you got yourself):
 
 ```bash
-python3 scripts/kauche.py login --refresh-token <firebase-refresh-token>   # universal
-python3 scripts/kauche.py login --google-id-token <google-oidc-id-token>
-python3 scripts/kauche.py login --custom-token <firebase-custom-token> --signup
-python3 scripts/kauche.py whoami        # python3 scripts/kauche.py logout
+python3 scripts/kauche.py login                 # browser login: opens a link, sign in with Google/Apple, token returns automatically
+python3 scripts/kauche.py login --refresh-token <firebase-refresh-token>   # headless alternative
+python3 scripts/kauche.py whoami                # python3 scripts/kauche.py logout
 ```
+
+`login` (no args) starts a local page, opens your browser, you sign in with Google or
+Apple (Firebase popup), and the token is captured back automatically — no copy-paste.
+LINE (custom provider) and `--google-id-token`/`--custom-token`/`--refresh-token` are the
+manual alternatives; see `references/internal-api.md`.
 
 After login the same commands (ranking, newarrivals, product) use the signed-in session
 automatically (cached in `~/.cache/kauche-api/account.json`, auto-refreshed). LINE flow,

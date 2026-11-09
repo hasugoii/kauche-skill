@@ -89,6 +89,13 @@ class AccountSession:
 
     # ---- establishing a session (constructors) ----
     @classmethod
+    def from_tokens(cls, id_token: str, refresh_token: str, expires_in=3600, **kw) -> "AccountSession":
+        """Seed directly from an idToken + refreshToken (e.g. from the web-login flow)."""
+        s = cls(**kw)
+        s._store(id_token, refresh_token, expires_in)
+        return s
+
+    @classmethod
     def from_refresh_token(cls, refresh_token: str, **kw) -> "AccountSession":
         s = cls(**kw)
         s._refresh_token = refresh_token

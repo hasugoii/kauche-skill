@@ -40,3 +40,8 @@
 - account/v1 is JSON (KotlinSerialization), same host api.kauche.com/api. customer/v1 is protobuf-but-JSON-negotiable.
 - customer/v1/CompleteSignIn provisions the KAUCHE customer profile for the firebase uid (req type x53 had no simple scalar fields; likely nested/empty). Likely why anon gets code 13 on ranking/GetProduct.
 - Library approach: never handle user's password; accept refresh-token/custom-token/google-id-token/apple-id-token and persist refresh token (securetoken). Verified request shapes against Firebase with bogus creds (INVALID_CUSTOM_TOKEN / INVALID_IDP_RESPONSE). Did NOT create a real account.
+
+2026-11-09 (browser login)
+
+- Full Firebase web config from resources.arsc: apiKey AIzaSyCMT60jygkdhgCKGgoWHq6HiJP8ZVsx-6U, authDomain x-asia-kauche-prod.firebaseapp.com, projectId x-asia-kauche-prod, senderId 283378856219, bucket x-asia-kauche-prod.appspot.com, web OAuth client 283378856219-6i7lsqu39dc3cbb8feg9ic4sjrk6vglh.apps.googleusercontent.com.
+- Browser-login = local http server on 127.0.0.1 serving a Firebase JS page; signInWithPopup(Google/Apple) from localhost (a default Firebase authorized domain), page POSTs idToken+refreshToken back to /token. Verified server/page/callback/persist locally with a simulated callback; the Google popup itself needs a real human login (not testable here).

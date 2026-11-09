@@ -69,8 +69,10 @@ def main():
     p = sub.add_parser("newarrivals"); p.add_argument("--n", type=int, default=20)
     p = sub.add_parser("shop"); p.add_argument("partner_id"); p.add_argument("--limit", type=int, default=20)
     p = sub.add_parser("api"); p.add_argument("method"); p.add_argument("body", nargs="?", default="{}")
-    p = sub.add_parser("login", help="establish a signed-in session (you provide the credential)")
-    g = p.add_mutually_exclusive_group(required=True)
+    p = sub.add_parser("login", help="establish a signed-in session (browser by default)")
+    p.add_argument("--web", action="store_true", help="browser login (default): opens a link, returns the token")
+    p.add_argument("--port", type=int, default=0, help="local port for --web (default: random)")
+    g = p.add_mutually_exclusive_group(required=False)
     g.add_argument("--refresh-token", help="Firebase refresh token from your own session")
     g.add_argument("--custom-token", help="Firebase custom token (e.g. from LINE CompleteLineLogin)")
     g.add_argument("--google-id-token", help="Google OpenID id_token")
@@ -181,6 +183,9 @@ def run(args, k):
         from kauche import AccountSession
         if args.refresh_token:
             s = AccountSession.from_refresh_token(args.refresh_token)
+        elif args.web or not (args.custom_token or args.google_id_token or args.apple_id_token):
+            from kauche.weblogin import run_web_login
+            s = run_web_login(port=args.port)
         elif args.custom_token:
             s = AccountSession.from_custom_token(args.custom_token)
         elif args.google_id_token:

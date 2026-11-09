@@ -65,6 +65,9 @@ Beyond the Shopify storefront, this now wraps KAUCHE's **internal Connect-RPC AP
 (`api.kauche.com`), reverse-engineered from the Android app v2.164.0:
 
 - Anonymous Firebase auth (no signup) — `kauche/auth.py`.
+- Browser login: `kauche login` opens a link, you sign in with Google/Apple, the token
+  returns automatically — `kauche/weblogin.py`. Headless alternatives: `--refresh-token`,
+  `--google-id-token`, `--custom-token` (LINE).
 - Reviews & ratings, home time sale, product categories, coupons: verified working.
 - Sales ranking / new arrivals / GetProduct: mapped, but need a signed-in user (return
   `code 13` anonymously).

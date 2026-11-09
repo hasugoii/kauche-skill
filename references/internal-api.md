@@ -134,3 +134,14 @@ that creates your profile — run it yourself; the library does not do it unprom
 
 Phone auth (Firebase PhoneAuthProvider) needs reCAPTCHA/Play Integrity and is not
 reproducible headlessly.
+
+### Browser login (easiest)
+
+`kauche login` (no args) runs a one-shot local web server, opens a page in your browser
+that signs you into the KAUCHE Firebase project with Google or Apple via the Firebase JS
+SDK (`signInWithPopup`), and captures the resulting idToken + refreshToken back into the
+AccountSession automatically. Works because `http://localhost` is a default authorized
+domain on Firebase projects. Implementation: `kauche/weblogin.py`. Firebase web config is
+embedded there (apiKey/authDomain/projectId from the APK). If a project disabled the
+localhost authorized domain you get `auth/unauthorized-domain` — then use
+`--refresh-token` / `--google-id-token`. LINE has no Firebase popup; use its flow above.
