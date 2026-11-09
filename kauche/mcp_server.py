@@ -131,13 +131,13 @@ def kauche_shop_products(partner_id: str, limit: int = 20) -> dict:
 
 
 @mcp.tool()
-def kauche_win_scan(limit: int = 8, with_price: bool = True) -> list:
+def kauche_win_scan(limit: int = 8, with_price: bool = True, collection: str = "") -> list:
     """Rank the products KAUCHE is actively pushing (home time sale) by a win-score
     (review velocity x rating), for competitor/winning-product research. Reviews are
     coin-rewarded on KAUCHE so review count tracks sales. Returns price/discount, rating,
     reviews in last 4 weeks and lifetime, and a win_candidate flag. Keep limit small."""
     from .win import win_scan
-    return _guard(lambda: win_scan(limit=limit, with_price=with_price, k=_k))
+    return _guard(lambda: win_scan(limit=limit, with_price=with_price, collection=collection or None, k=_k))
 
 
 @mcp.tool()

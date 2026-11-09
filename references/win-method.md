@@ -16,17 +16,24 @@ core signal here.
 | best sellers | `kauche_sales_ranking` (needs login) | ground-truth ranking |
 | a rival's catalog | `kauche_shop_products(partner_id)` | competitor teardown |
 
-## Score (v1, `kauche/win.py`)
+## Score (`kauche/win.py`)
 
-    win_score = reviews_28d * rating_factor
+    win_score = total_rating_count * rating_factor      (proven, satisfaction-weighted demand)
     rating_factor = rating/5         (rating >= 3.8)
                   = 0.5 * rating/5   (rating < 3.8, quality penalty)
 
-Reported alongside: price, discount, rating, reviews_28d, reviews_total, share link.
+Reviews are coin-rewarded on KAUCHE, so lifetime review count tracks cumulative sales.
+Reported: price, discount, rating, reviews_total, reviews_28d_min (momentum), hot flag,
+vendor (shop), share link. Source = a Shopify sale collection (`collection=<handle>`,
+reveals competitor `vendor`) or the home time sale.
+
+NOTE: `ListProductFeedbacks` returns ~10 recent reviews per page, so reviews_28d is a
+page-capped lower bound used only as a "hot/recent" flag; the ranking uses total_rating_count.
+True velocity needs pagination (v-next).
 
 ## Thresholds (fixed BEFORE measuring — issue-log discipline)
 
-A **win candidate** = reviews_28d >= 10 AND rating >= 3.8.
+A **win candidate** = total_rating_count >= 500 AND rating >= 3.8 (proven + liked).
 - Proven-but-cooling: high `reviews_total` but low reviews_28d → a validated product whose
   hype passed; good to source if you can refresh the angle.
 - New + fast: low total but high 28d → rising; watch 2 weeks before committing.

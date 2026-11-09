@@ -28,8 +28,10 @@ from .client import Kauche
 from .connect import ConnectError
 
 RATING_GATE = 3.8
-WIN_VELOCITY = 10
+WIN_MIN_REVIEWS = 500   # proven cumulative demand for a "win candidate"
 _WINDOW_DAYS = 28
+_PAGE_CAP = 10          # ListProductFeedbacks returns ~10 recent reviews per page;
+                        # reviews_28d saturates here unless paginated (momentum flag only)
 
 
 def _velocity(feedbacks, days=_WINDOW_DAYS):
@@ -48,15 +50,39 @@ def _velocity(feedbacks, days=_WINDOW_DAYS):
     return n
 
 
-def win_scan(limit: int = 8, with_price: bool = True, k: Kauche | None = None) -> list:
-    """Score the current time-sale products by win_score, best first."""
-    k = k or Kauche()
-    rows = []
+def _seed_from_collection(k, handle, limit):
+    """Candidate products from a Shopify sale collection (anonymous): already carries
+    title, vendor (shop), price, discount and the numeric id -> gid."""
+    out = []
+    for p in k.collection_products(handle, limit=limit):
+        out.append({
+            "gid": f"gid://shopify/Product/{p['id']}", "handle": p["handle"],
+            "title": p.get("title"), "vendor": p.get("vendor"),
+            "price": p.get("price"), "compare_at_price": p.get("compare_at_price"),
+            "discount_pct": p.get("discount_pct"),
+        })
+    return out
+
+
+def _seed_from_timesale(k, limit):
+    out = []
     for item in k.time_sale()[:limit]:
         p = item.get("product", item)
-        gidobj = p.get("shopify_product_gid") or {}
-        gid = gidobj.get("gid")
-        handle = p.get("handle")
+        gid = (p.get("shopify_product_gid") or {}).get("gid")
+        if gid:
+            out.append({"gid": gid, "handle": p.get("handle")})
+    return out
+
+
+def win_scan(limit: int = 8, with_price: bool = True, collection: str = None, k: Kauche | None = None) -> list:
+    """Score products by win_score, best first. Source = a Shopify sale collection
+    (`collection=<handle>`, shows competitor `vendor`) or the home time sale (default).
+    Fully anonymous."""
+    k = k or Kauche()
+    seeds = _seed_from_collection(k, collection, limit) if collection else _seed_from_timesale(k, limit)
+    rows = []
+    for s in seeds:
+        gid, handle = s.get("gid"), s.get("handle")
         if not gid:
             continue
         rating_val, total, velocity = None, None, None
@@ -68,8 +94,9 @@ def win_scan(limit: int = 8, with_price: bool = True, k: Kauche | None = None) -
             velocity = _velocity(r.get("product_feedbacks") or [])
         except (ConnectError, Exception):
             pass
-        price = cmp = discount = title = vendor = None
-        if with_price and handle:
+        title, vendor = s.get("title"), s.get("vendor")
+        price, cmp, discount = s.get("price"), s.get("compare_at_price"), s.get("discount_pct")
+        if with_price and handle and price is None:
             try:
                 sp = k.shop.product(handle)
                 price, cmp, discount = sp.get("price"), sp.get("compare_at_price"), sp.get("discount_pct")
@@ -79,17 +106,20 @@ def win_scan(limit: int = 8, with_price: bool = True, k: Kauche | None = None) -
         rf = 0.0
         if rating_val is not None:
             rf = rating_val / 5.0 if rating_val >= RATING_GATE else 0.5 * rating_val / 5.0
-        score = round((velocity or 0) * rf, 2)
+        # Proven, satisfaction-weighted demand. reviews are coin-rewarded on KAUCHE, so
+        # total_rating_count tracks lifetime sales. velocity (page-capped) is momentum only.
+        score = round((total or 0) * rf)
         rows.append({
             "score": score,
-            "win_candidate": bool(velocity and velocity >= WIN_VELOCITY and (rating_val or 0) >= RATING_GATE),
+            "win_candidate": bool((total or 0) >= WIN_MIN_REVIEWS and (rating_val or 0) >= RATING_GATE),
+            "hot": bool(velocity and velocity >= _PAGE_CAP),  # recent page all within 28d
             "title": title,
             "vendor": vendor,
             "price": price,
             "discount_pct": discount,
             "rating": rating_val,
             "reviews_total": total,
-            "reviews_28d": velocity,
+            "reviews_28d_min": velocity,  # lower bound (page-capped at ~10)
             "handle": handle,
             "product_gid": gid,
             "share_link": f"https://kauche.com/products/{handle}" if handle else None,

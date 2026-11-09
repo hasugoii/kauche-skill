@@ -80,7 +80,7 @@ def main():
     g.add_argument("--google-id-token", help="Google OpenID id_token")
     g.add_argument("--apple-id-token", help="Apple id_token")
     p.add_argument("--signup", action="store_true", help="also run customer/v1/CompleteSignIn to provision your KAUCHE profile")
-    p = sub.add_parser("win", help="rank products KAUCHE is pushing by a review-velocity win-score"); p.add_argument("--limit", type=int, default=8); p.add_argument("--no-price", action="store_true")
+    p = sub.add_parser("win", help="rank products by a review-velocity win-score (competitor research)"); p.add_argument("--limit", type=int, default=8); p.add_argument("--collection", help="Shopify sale-collection handle to scan (shows vendor/shop); default = home time sale"); p.add_argument("--no-price", action="store_true")
     sub.add_parser("logout")
     sub.add_parser("whoami")
     args = ap.parse_args()
@@ -207,19 +207,21 @@ def run(args, k):
     elif args.cmd == "shop":
         dump(k.shop_products(args.partner_id, args.limit))
     elif args.cmd == "win":
-        from kauche.win import win_scan, WIN_VELOCITY, RATING_GATE
-        rows = win_scan(limit=args.limit, with_price=not args.no_price, k=k)
+        from kauche.win import win_scan, WIN_MIN_REVIEWS, RATING_GATE
+        rows = win_scan(limit=args.limit, with_price=not args.no_price, collection=args.collection, k=k)
         if args.json:
             dump(rows)
         else:
-            print(f"win-score = reviews_28d x rating_factor; candidate = >={WIN_VELOCITY}/4wk & rating>={RATING_GATE}\n")
+            print(f"win-score = total_reviews x rating_factor (proven demand); "
+                  f"candidate = >={WIN_MIN_REVIEWS} reviews & rating>={RATING_GATE}; \U0001f525 = hot (recent)\n")
             for r in rows:
                 star = "\u2b50" if r["win_candidate"] else "  "
+                hot = "\U0001f525" if r.get("hot") else " "
                 price = yen(r["price"]) if r["price"] else "?"
                 off = f" -{r['discount_pct']}%" if r.get("discount_pct") else ""
-                print(f"{star} score {r['score']:>6}  {price}{off}  \u2605{r['rating'] or '?'} "
-                      f"({r['reviews_28d'] or 0}/4wk, {r['reviews_total'] or 0} total)  {(r['title'] or r['handle'])[:48]}")
-                print(f"        {r['vendor'] or ''}  {r['share_link']}")
+                print(f"{star}{hot} score {r['score']:>8}  {price}{off}  \u2605{r['rating'] or '?'} "
+                      f"({r['reviews_total'] or 0} reviews)  {(r['title'] or r['handle'] or '')[:46]}")
+                print(f"         {r['vendor'] or ''}  {r['share_link']}")
 
     elif args.cmd == "api":
         dump(KaucheAPI.for_account().call(args.method, json.loads(args.body)))
