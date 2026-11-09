@@ -78,7 +78,8 @@ def _seed_from_search(k, query, limit):
     out = []
     for p in k.shop.search(query, limit=limit):
         out.append({"gid": f"gid://shopify/Product/{p['id']}", "handle": p["handle"],
-                    "title": p.get("title"), "price": p.get("price")})
+                    "title": p.get("title"), "vendor": p.get("vendor"),
+                    "price": p.get("price"), "compare_at_price": p.get("compare_at_price")})
     return out
 
 

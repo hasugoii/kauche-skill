@@ -51,3 +51,11 @@
 - Packaged as an MCP server (kauche/mcp_server.py, FastMCP). Tools wrap the Hybrid client; account-gated tools return {"status":"login_required"} via a _guard() that catches LoginRequired/SessionExpired/ConnectError(7,13,16 while anon).
 - Login as MCP tool: kauche_login starts a non-blocking WebLogin (refactored weblogin.py: WebLogin.start() returns URL immediately, background handler persists AccountSession on /token POST). Token never returned to the MCP client — only saved to ~/.cache/kauche-api/account.json.
 - pyproject.toml: entry points `kauche` (cli) and `kauche-mcp`; optional dep mcp[cli].
+
+2026-11-09 (Storefront GraphQL — the 429 fix)
+
+- ROOT CAUSE of the 429s: we were scraping the public website (kauche.myshopify.com/search, /products/x.json) — a ~10 req/min per-IP anti-bot tier the real app never touches. SSL-EOF / "remote closed" errors are the same tier dropping bot connections.
+- The app's real path: customer/v1/launch RPC (works anonymously, only os_type=2 needed in body) -> {shopify:{shop_domain:"kauche.myshopify.com", storefront_access_token:"<32hex>"}}. Token is a public Storefront token (ships in client). Then query https://kauche.myshopify.com/api/2026-04/graphql with header X-Shopify-Storefront-Access-Token. Cost-budget quota, not per-IP -> hammered 15 queries no-throttle = 0×429.
+- Reverse-eng trail: defpackage/hk5.java:171 @POST("customer/v1/launch"), req=r7d (os_type,os_version,app_name,app_version,bundle_number,device_model,device_uuid,locale), resp=t7d -> field 1 shopify=wmi{shop_domain(1),storefront_access_token(2),locale(3)}. GraphQL client built in iki.java (URL https://<shopDomain>/api/2026-04/graphql, UA "Mobile Buy SDK Android/2026.4.0").
+- shopify.py v0.11: _config() fetches+caches token (1h, chmod600 ~/.cache/kauche-api/storefront.json); _gql() light throttle + backoff on THROTTLED/429/430; search() uses GraphQL `search(query:,types:PRODUCT)` (best relevance, returns vendor), product() uses `product(handle:)`, collection_products() uses `collection(handle:){products}`. All fall back to website scraping if launch/GraphQL fails. connect.py: added launch() + storefront_config().
+- GraphQL `search` ranking differs from website search (surfaces big-bag sellers like 国華園, and 明治屋 9kg じゃがいも 1047rv that web search missed) — richer competitor data, keep in mind when comparing to older scrape results.

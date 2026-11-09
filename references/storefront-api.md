@@ -3,6 +3,16 @@
 Verified 2026-11-09 against `https://kauche.myshopify.com`. Everything here is the
 standard Shopify Online Store surface; nothing is Kauche-specific except the data.
 
+> **v0.11 — primary path is now the Storefront GraphQL API, not this website.**
+> The website endpoints below (`/search`, `/products/x.json`, `/collections.json`) are
+> guarded by a harsh **~10 req/min per-IP** anti-bot limit and are only a *fallback*.
+> `kauche/shopify.py` now gets a Storefront access token from the `customer/v1/launch`
+> RPC (see internal-api.md) and queries `https://kauche.myshopify.com/api/2026-04/graphql`
+> with it — token-based cost budget, no per-IP 429. Measured: 8 niche searches + 32
+> product lookups in one pass, **0 × 429** (the website path needed 3 passes + 60 s
+> cooldowns). The GraphQL `search(query:)` root also returns each product's `vendor`
+> (competitor shop) directly. Use the website only when the token path is unavailable.
+
 ## Hosts
 
 | Host | What | Notes |

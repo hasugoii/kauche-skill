@@ -53,6 +53,18 @@ the app references them by `shopify_product_gid` = `gid://shopify/Product/<id>`.
 | `customer/v1/ListProductCategories` | `{}` | `product_categories[]{id,name,kind}` |
 | `customer/v1/product_search_settings` (GET) | — | recommended search terms, filter settings |
 | `customer/v1/coupons` (GET) | — | `coupons[]{id,code,value,value_kind,title,...}` |
+| `customer/v1/launch` | `{os_type:2,os_version,app_name,app_version,bundle_number,device_model,device_uuid,locale}` (snake_case; only `os_type` mattered in testing) | `{shopify:{shop_domain:"kauche.myshopify.com", storefront_access_token:"<32hex>", locale}, app_update, user_profile_status}` |
+
+**`launch` is the key to the catalog.** Its `storefront_access_token` is a public Shopify
+Storefront token (meant to ship in the client). With it, catalog/search/product go through
+the **Storefront GraphQL API** `https://kauche.myshopify.com/api/2026-04/graphql`
+(`X-Shopify-Storefront-Access-Token` header) — a generous per-token cost budget, **not**
+the ~10 req/min per-IP anti-bot limit on the public website. This is exactly how the app
+works; `kauche/shopify.py` fetches the token via `launch` (cached 1h) and uses GraphQL as
+the primary path, falling back to website scraping only if `launch`/GraphQL fails. Don't
+hardcode the token — fetch it live, it can rotate. Useful GraphQL roots (2026-04):
+`search(query:,types:PRODUCT,first:)` (best keyword relevance + `vendor`), `product(handle:)`,
+`collection(handle:){products(first:)}`.
 
 ## Mapped from the APK (fields known; may need a real user)
 

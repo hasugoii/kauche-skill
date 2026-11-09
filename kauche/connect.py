@@ -140,6 +140,23 @@ class KaucheAPI:
         """The (anonymous) user's available coupons."""
         return self.get("customer/v1/coupons")
 
+    def launch(self) -> dict:
+        """customer/v1/launch: the app's startup call. Returns
+        `{"shopify":{"shop_domain","storefront_access_token","locale"}, ...}`.
+        Works anonymously. This is how the app gets its Shopify Storefront token,
+        so catalog/search can go through the Storefront GraphQL API (token-based,
+        generous quota) instead of scraping the public website (harsh per-IP limit)."""
+        return self.call("customer/v1/launch", {
+            "os_type": 2, "os_version": "14", "app_name": "kauche",
+            "app_version": APP_VERSION, "bundle_number": 31207,
+            "device_model": "Pixel 7", "device_uuid": "kauche-skill",
+            "locale": "ja_JP",
+        })
+
+    def storefront_config(self) -> dict:
+        """Just the `shopify` block from launch(): {shop_domain, storefront_access_token, locale}."""
+        return self.launch().get("shopify", {})
+
     # ---- MAPPED helpers (fields from APK; may need a real user) ----
     def product(self, product_gid=None, handle: str = None, encoded_id: str = None) -> dict:
         """GetProduct. One of: product_gid (Shopify id), handle, encoded_id.
