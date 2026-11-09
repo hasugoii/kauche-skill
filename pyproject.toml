@@ -1,6 +1,6 @@
 [project]
 name = "kauche-skill"
-version = "0.11.0"
+version = "0.12.0"
 description = "Reverse-engineered client, CLI and MCP server for the KAUCHE (カウシェ) shopping app"
 readme = "README.md"
 requires-python = ">=3.9"

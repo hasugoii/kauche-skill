@@ -97,9 +97,23 @@ def kauche_product(handle_or_url: str, with_reviews: bool = False) -> dict:
 
 # ---- internal API (anonymous ok) ----
 @mcp.tool()
-def kauche_reviews(product_gid: str) -> dict:
-    """User reviews + aggregate rating. product_gid: a Shopify numeric id or gid:// string."""
-    return _guard(lambda: _k.reviews(product_gid))
+def kauche_reviews(product_gid: str, page_token: str = "") -> dict:
+    """One page (~10) of user reviews + aggregate rating. product_gid: a Shopify numeric
+    id or gid:// string. Pass the returned next_page_token to get the next page."""
+    return _guard(lambda: _k.reviews(product_gid, page_token))
+
+
+@mcp.tool()
+def kauche_reviews_pull(product_gid: str, limit: int = 30, min_star: int = 1,
+                        max_star: int = 5, max_pages: int = 20) -> dict:
+    """Pull many reviews across pages, normalized ({star,message,author,date,images}),
+    optionally filtered by star. For competitor research set min_star=1, max_star=2 to
+    read only the complaints about a rival product (weaknesses to beat on). Star filtering
+    is client-side (no server filter), so on huge products a low-star pull samples the most
+    recent max_pages*10 reviews — raise max_pages to dig deeper (~1.5s/page).
+    product_gid: a Shopify numeric id or gid:// string."""
+    return _guard(lambda: _k.reviews_pull(product_gid, limit=limit, min_star=min_star,
+                                          max_star=max_star, max_pages=max_pages))
 
 
 @mcp.tool()

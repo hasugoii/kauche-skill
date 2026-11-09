@@ -64,6 +64,10 @@ def main():
     p = sub.add_parser("deals"); p.add_argument("--date")
     sub.add_parser("link").add_argument("handle")
     p = sub.add_parser("reviews"); p.add_argument("product"); p.add_argument("--page-token", default="")
+    p.add_argument("--pull", type=int, metavar="N", help="walk pages and return up to N normalized reviews")
+    p.add_argument("--min-star", type=int, default=1); p.add_argument("--max-star", type=int, default=5,
+                   help="filter reviews by star (e.g. --min-star 1 --max-star 2 for complaints)")
+    p.add_argument("--max-pages", type=int, default=20, help="pages to scan when filtering (deeper = slower)")
     sub.add_parser("timesale")
     sub.add_parser("categories")
     sub.add_parser("coupons")
@@ -187,14 +191,28 @@ def run(args, k):
         print(share_link(handle_from(args.handle)))
 
     elif args.cmd == "reviews":
-        r = k.reviews(args.product, args.page_token)
-        if args.json:
-            dump(r)
+        if args.pull or args.min_star > 1 or args.max_star < 5:
+            r = k.reviews_pull(args.product, limit=args.pull or 30,
+                               min_star=args.min_star, max_star=args.max_star,
+                               max_pages=args.max_pages)
+            if args.json:
+                dump(r)
+            else:
+                rg = r.get("rating") or {}
+                print(f"★{rg.get('average_rating_value')} · {rg.get('total_rating_count')} reviews total  "
+                      f"(showing {r['count']}, scanned {r['pages']} pages)")
+                for rv in r["reviews"]:
+                    img = f" 📷{len(rv['images'])}" if rv.get("images") else ""
+                    print(f"  ★{rv['star']} {rv.get('author') or ''} {str(rv.get('date') or '')[:10]}{img}: {str(rv.get('message') or '').strip()[:120]}")
         else:
-            print(f"rating: {r.get('product_rating')}")
-            for fb in r.get("product_feedbacks", []):
-                up = fb.get("user_post", {})
-                print(f"  ★{up.get('product_rating_value','?')} {up.get('owner_user_profile',{}).get('nick_name','')}: {str(up.get('message','')).strip()[:120]}")
+            r = k.reviews(args.product, args.page_token)
+            if args.json:
+                dump(r)
+            else:
+                print(f"rating: {r.get('product_rating')}")
+                for fb in r.get("product_feedbacks", []):
+                    up = fb.get("user_post", {})
+                    print(f"  ★{up.get('product_rating_value','?')} {up.get('owner_user_profile',{}).get('nick_name','')}: {str(up.get('message','')).strip()[:120]}")
 
     elif args.cmd == "timesale":
         dump(k.time_sale())
