@@ -25,6 +25,8 @@ from .client import Kauche
 from .connect import ConnectError, KaucheAPI
 from .account import AccountSession, LoginRequired, SessionExpired
 from .weblogin import WebLogin
+from .shopify import RateLimited
+import urllib.error
 
 mcp = FastMCP("kauche")
 _k = Kauche()
@@ -42,6 +44,13 @@ def _guard(fn):
         return fn()
     except (LoginRequired, SessionExpired):
         return _NEEDS_LOGIN
+    except (RateLimited, urllib.error.HTTPError) as e:
+        code = getattr(e, "code", None)
+        if isinstance(e, RateLimited) or code == 429:
+            return {"status": "rate_limited",
+                    "message": "KAUCHE/Shopify is throttling; wait ~1 minute and retry. "
+                               "Cached results are reused, so repeats are cheap."}
+        return {"status": "error", "message": str(e)}
     except ConnectError as e:
         if e.code in (7, 13, 16) and not AccountSession().logged_in():
             return _NEEDS_LOGIN

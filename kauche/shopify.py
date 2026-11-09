@@ -10,16 +10,27 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import random
 import re
+import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
+# Process-wide Shopify throttle: one request at a time, with a shared cooldown after a 429
+# so parallel callers (e.g. several MCP tool calls) queue instead of bursting into the limit.
+_LOCK = threading.Lock()
+_STATE = {"last": 0.0, "cooldown_until": 0.0}
+
+
+class RateLimited(Exception):
+    """Shopify returned 429 past our retries; back off and try again shortly."""
+
 STORE = "https://kauche.myshopify.com"
 SHARE_BASE = "https://kauche.com/products/"
 UA = "kauche-skill/1.0 (+https://github.com/hasugoii/kauche-skill)"
-INTERVAL = float(os.environ.get("KAUCHE_INTERVAL", "1.5"))
+INTERVAL = float(os.environ.get("KAUCHE_INTERVAL", "2.5"))
 CACHE_TTL = int(os.environ.get("KAUCHE_CACHE_TTL", "600"))
 CACHE_DIR = os.environ.get("KAUCHE_CACHE_DIR", os.path.join(os.path.expanduser("~"), ".cache", "kauche-api", "shopify"))
 
@@ -42,30 +53,39 @@ class ShopifyStorefront:
     def _cache(self, url):
         return os.path.join(CACHE_DIR, hashlib.sha1(url.encode()).hexdigest() + ".json")
 
+    def _http(self, url: str, accept: str) -> str:
+        """One throttled GET. Serialized process-wide; honors Retry-After; shared cooldown
+        after a 429 so everyone backs off together. Raises RateLimited if it can't get through."""
+        headers = {"User-Agent": UA, "Accept": accept, "Accept-Language": "ja"}
+        with _LOCK:
+            for attempt in range(6):
+                now = time.time()
+                wait = max(_STATE["cooldown_until"] - now, _STATE["last"] + self.interval - now, 0.0)
+                if wait:
+                    time.sleep(wait + random.uniform(0, 0.4))  # jitter
+                _STATE["last"] = time.time()
+                try:
+                    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as r:
+                        return r.read().decode("utf-8", "replace")
+                except urllib.error.HTTPError as e:
+                    if e.code != 429:
+                        raise
+                    ra = e.headers.get("Retry-After")
+                    back = float(ra) if (ra and ra.isdigit()) else [2, 5, 10, 20, 40][min(attempt, 4)]
+                    _STATE["cooldown_until"] = time.time() + back
+            raise RateLimited("Shopify rate limit; try again in a minute (requests are throttled to recover).")
+
     def fetch(self, path: str, use_cache: bool = True) -> dict:
         url = path if path.startswith("http") else STORE + path
         cp = self._cache(url)
         if use_cache and os.path.exists(cp) and time.time() - os.path.getmtime(cp) < self.cache_ttl:
             with open(cp, encoding="utf-8") as f:
                 return json.load(f)
-        for attempt, extra in enumerate([0, 5, 10, 20, 40]):
-            wait = max(0.0, self._last + self.interval - time.time()) + extra
-            if wait:
-                time.sleep(wait)
-            req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json", "Accept-Language": "ja"})
-            self._last = time.time()
-            try:
-                with urllib.request.urlopen(req, timeout=30) as r:
-                    data = json.loads(r.read().decode())
-            except urllib.error.HTTPError as e:
-                if e.code == 429 and attempt < 4:
-                    continue
-                raise
-            os.makedirs(CACHE_DIR, exist_ok=True)
-            with open(cp, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False)
-            return data
-        raise RuntimeError("Shopify rate limit: gave up after retries")
+        data = json.loads(self._http(url, "application/json"))
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(cp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        return data
 
     def collections(self, all_pages: bool = False, max_pages: int = 3):
         cols, page = [], 1
@@ -129,24 +149,11 @@ class ShopifyStorefront:
         if os.path.exists(cp) and time.time() - os.path.getmtime(cp) < self.cache_ttl:
             with open(cp, encoding="utf-8", errors="replace") as f:
                 return f.read()
-        for attempt, extra in enumerate([0, 5, 10, 20, 40]):
-            wait = max(0.0, self._last + self.interval - time.time()) + extra
-            if wait:
-                time.sleep(wait)
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "ja"})
-            self._last = time.time()
-            try:
-                with urllib.request.urlopen(req, timeout=30) as r:
-                    txt = r.read().decode("utf-8", "replace")
-            except urllib.error.HTTPError as e:
-                if e.code == 429 and attempt < 4:
-                    continue
-                raise
-            os.makedirs(CACHE_DIR, exist_ok=True)
-            with open(cp, "w", encoding="utf-8") as f:
-                f.write(txt)
-            return txt
-        raise RuntimeError("Shopify rate limit on search")
+        txt = self._http(url, "text/html")
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(cp, "w", encoding="utf-8") as f:
+            f.write(txt)
+        return txt
 
     @staticmethod
     def summarize(p: dict) -> dict:

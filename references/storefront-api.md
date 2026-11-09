@@ -70,3 +70,19 @@ product has `compare_at_price`. `taxable:false` + Japanese market ⇒ prices are
 - The block persisted through 5 + 10 + 20 + 40 s retries, i.e. several minutes.
 - Mitigation in `scripts/kauche.py`: ≥1.5 s spacing, backoff, 10-min disk cache
   (`~/.cache/kauche-skill`). Set `KAUCHE_INTERVAL=3` when sharing an IP with other jobs.
+
+
+## Throttle (client-side, v0.10)
+
+To avoid Shopify 429s the client now:
+- serializes all storefront requests process-wide (one at a time) so parallel MCP tool
+  calls queue instead of bursting;
+- honors the `Retry-After` header and keeps a shared cooldown after a 429 (all callers back
+  off together);
+- spaces requests `KAUCHE_INTERVAL` seconds apart (default 2.5) with jitter, and caches
+  200s for 10 min;
+- raises `RateLimited` after retries; the CLI exits 3 with a friendly message and the MCP
+  tools return `{"status":"rate_limited"}` instead of crashing.
+
+Reviews/categories/etc. go through the KAUCHE Connect API (separate, more generous limit),
+so the Shopify limit mainly bites on catalog/search/collection calls — keep those few.

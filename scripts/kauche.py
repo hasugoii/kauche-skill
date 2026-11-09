@@ -27,7 +27,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kauche import (Kauche, KaucheAPI, ConnectError, LoginRequired, SessionExpired,  # noqa: E402
-                    share_link, handle_from)
+                    RateLimited, share_link, handle_from)
 
 JST = dt.timezone(dt.timedelta(hours=9))
 
@@ -119,6 +119,8 @@ def main():
         if e.code in (7, 13, 16) and not AccountSession().logged_in():
             login_hint("This needs a signed-in KAUCHE account (you are anonymous now).")
         sys.exit(1)
+    except RateLimited as e:
+        print(f"Rate limited: {e}", file=sys.stderr); sys.exit(3)
     except urllib.error.HTTPError as e:
         host = (e.url or "").split("/")[2] if "://" in (e.url or "") else "?"
         detail = ""
