@@ -102,12 +102,14 @@ def win_scan(limit: int = 8, with_price: bool = True, collection: str = None,
         gid, handle = s.get("gid"), s.get("handle")
         if not gid:
             continue
-        rating_val, total, velocity = None, None, None
+        rating_val, total, velocity, breakdown = None, None, None, None
         try:
             r = k.reviews(gid)
             rating = r.get("product_rating") or {}
             rating_val = rating.get("average_rating_value")
             total = rating.get("total_rating_count")
+            breakdown = {s: rating.get(name + "_rating_count")
+                         for s, name in [(5, "five"), (4, "four"), (3, "three"), (2, "two"), (1, "one")]}
             velocity = _velocity(r.get("product_feedbacks") or [])
         except (ConnectError, Exception):
             pass
@@ -135,7 +137,8 @@ def win_scan(limit: int = 8, with_price: bool = True, collection: str = None,
             "price": price,
             "discount_pct": discount,
             "rating": rating_val,
-            "reviews_total": total,
+            "reviews_total": total,            # coin-rewarded on KAUCHE -> best public sales proxy
+            "reviews_breakdown": breakdown,    # {5:..,4:..,3:..,2:..,1:..}
             "reviews_28d_min": velocity,  # lower bound (page-capped at ~10)
             "handle": handle,
             "product_gid": gid,
