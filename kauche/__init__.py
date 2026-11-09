@@ -16,9 +16,9 @@ from .client import Kauche
 from .connect import KaucheAPI, ConnectError, gid
 from .shopify import ShopifyStorefront, handle_from, share_link
 from .auth import FirebaseAnonymousAuth
-from .account import AccountSession
+from .account import AccountSession, LoginRequired, SessionExpired
 from .weblogin import run_web_login
 
 __all__ = ["Kauche", "KaucheAPI", "ConnectError", "gid",
-           "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth", "AccountSession", "run_web_login"]
-__version__ = "0.4.1"
+           "ShopifyStorefront", "handle_from", "share_link", "FirebaseAnonymousAuth", "AccountSession", "LoginRequired", "SessionExpired", "run_web_login"]
+__version__ = "0.5.0"

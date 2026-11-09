@@ -36,8 +36,20 @@ Checkout, coins, writing reviews, farm actions — all stay in the app. This is 
   automatically. Then re-run the command. Check state anytime with
   `python3 scripts/kauche.py whoami`. The CLI's error messages already say this; surface
   that instruction to the user rather than attempting credentials on their behalf.
-- You never handle the user's password. If the browser can't be used, the user can log in
-  headlessly with `login --refresh-token` / `--google-id-token` (see references).
+- You never handle the user's password, and **the token is never printed** — it is saved to
+  `~/.cache/kauche-api/account.json` (chmod 600) and the library reads it itself. The agent
+  gets authenticated access without ever seeing the token.
+- **Token lifecycle (automatic):** a valid session auto-refreshes in the background. When
+  the refresh token finally expires or is revoked, account-gated commands print
+  "session expired — run `kauche login`"; relay that to the user. For a hands-off agent,
+  pass `--auto-login` (e.g. `ranking --auto-login`) and the CLI opens the browser login
+  itself on expiry, then retries. Exit code 2 = login needed.
+- If the browser can't be used, the user can log in headlessly with
+  `login --refresh-token` / `--google-id-token` (see references).
+
+**Recommended agent flow:** run the command → if it exits with "needs login"/"expired",
+tell the user "please run `python3 scripts/kauche.py login` and sign in, then say done" →
+on their confirmation, re-run the original command. Nothing sensitive crosses the chat.
 
 ## Quick start (CLI)
 

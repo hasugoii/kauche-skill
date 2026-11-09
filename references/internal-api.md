@@ -145,3 +145,13 @@ domain on Firebase projects. Implementation: `kauche/weblogin.py`. Firebase web 
 embedded there (apiKey/authDomain/projectId from the APK). If a project disabled the
 localhost authorized domain you get `auth/unauthorized-domain` — then use
 `--refresh-token` / `--google-id-token`. LINE has no Firebase popup; use its flow above.
+
+### Token lifecycle
+
+- A signed-in session stores `{id_token, refresh_token, expires_at, email}` in
+  `~/.cache/kauche-api/account.json` (chmod 600). The token is never printed.
+- `AccountSession.id_token()` returns a valid token, refreshing via securetoken when
+  expired. If the refresh token itself is invalid/revoked it clears the session and raises
+  `SessionExpired`; with no session it raises `LoginRequired`. Both mean: prompt the user
+  to run `kauche login`. The CLI maps these to exit code 2 and an actionable message, or,
+  with `--auto-login`, re-opens the browser login and retries.

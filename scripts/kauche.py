@@ -26,7 +26,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from kauche import Kauche, KaucheAPI, ConnectError, share_link, handle_from  # noqa: E402
+from kauche import (Kauche, KaucheAPI, ConnectError, LoginRequired, SessionExpired,  # noqa: E402
+                    share_link, handle_from)
 
 JST = dt.timezone(dt.timedelta(hours=9))
 
@@ -55,6 +56,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--json", action="store_true", help="machine-readable output")
+    common.add_argument("--auto-login", action="store_true", help="if login is needed/expired, open the browser login automatically then retry")
     sub = ap.add_subparsers(dest="cmd", required=True, parser_class=lambda **kw: argparse.ArgumentParser(parents=[common], **kw))
     sub.add_parser("collections").add_argument("--grep"); sub.choices["collections"].add_argument("--all", action="store_true")
     p = sub.add_parser("products"); p.add_argument("collection"); p.add_argument("--limit", type=int, default=50); p.add_argument("--page", type=int, default=1); p.add_argument("--available", action="store_true")
@@ -82,16 +84,39 @@ def main():
     sub.add_parser("whoami")
     args = ap.parse_args()
     k = Kauche()
+    prog = "python3 " + os.path.relpath(__file__)
+
+    def login_hint(why):
+        print(f"\n🔑 {why}", file=sys.stderr)
+        print(f"   Ask the user to run:  {prog} login", file=sys.stderr)
+        print("   A browser opens; they sign in with Google/Apple; the token is saved "
+              "securely (never shown). Then retry this command.", file=sys.stderr)
+
+    def do_retry():
+        # optional convenience: --auto-login re-runs web login then retries once
+        if getattr(args, "auto_login", False):
+            from kauche.weblogin import run_web_login
+            run_web_login()
+            k._api = None  # drop cached anon/expired session
+            run(args, k)
+            return True
+        return False
+
     try:
         run(args, k)
+    except LoginRequired:
+        if not do_retry():
+            login_hint("This needs a signed-in KAUCHE account (not logged in yet).")
+            sys.exit(2)
+    except SessionExpired:
+        if not do_retry():
+            login_hint("Your KAUCHE session expired. Log in again to continue.")
+            sys.exit(2)
     except ConnectError as e:
         print(f"KAUCHE API error: {e}", file=sys.stderr)
         from kauche import AccountSession
         if e.code in (7, 13, 16) and not AccountSession().logged_in():
-            prog = "python3 " + os.path.relpath(__file__)
-            print("\n🔑 This needs a signed-in KAUCHE account (you are anonymous now).", file=sys.stderr)
-            print(f"   Ask the user to run:  {prog} login", file=sys.stderr)
-            print("   It opens a browser; they sign in with Google/Apple; then retry this command.", file=sys.stderr)
+            login_hint("This needs a signed-in KAUCHE account (you are anonymous now).")
         sys.exit(1)
     except urllib.error.HTTPError as e:
         host = (e.url or "").split("/")[2] if "://" in (e.url or "") else "?"
@@ -107,6 +132,7 @@ def main():
 
 
 def run(args, k):
+    prog = "python3 " + os.path.relpath(__file__)
     if args.cmd == "collections":
         cols = k.collections(all_pages=bool(args.all))
         if args.grep:
@@ -195,7 +221,9 @@ def run(args, k):
             s = AccountSession.from_google_id_token(args.google_id_token)
         else:
             s = AccountSession.from_apple_id_token(args.apple_id_token)
-        print("logged in; session cached.")
+        who = f" as {s.email}" if getattr(s, "email", None) else ""
+        print(f"\u2705 Logged in{who}. Session saved to ~/.cache/kauche-api/account.json "
+              "(chmod 600) and auto-refreshed. The token is not printed.")
         if args.signup:
             try:
                 KaucheAPI(auth=s).complete_signin()
@@ -211,11 +239,15 @@ def run(args, k):
     elif args.cmd == "whoami":
         from kauche import AccountSession
         s = AccountSession()
-        if s.logged_in():
-            print("signed-in session (account-gated endpoints enabled).")
-        else:
-            prog = "python3 " + os.path.relpath(__file__)
+        if not s.logged_in():
             print(f"anonymous. Catalog/reviews/deals work. For ranking/your listings, run:  {prog} login")
+        else:
+            who = f" ({s.email})" if s.email else ""
+            try:
+                s.id_token()  # validates / refreshes
+                print(f"signed in{who}; session valid, account-gated endpoints enabled.")
+            except (LoginRequired, SessionExpired):
+                print(f"session for{who or ' your account'} expired. Run:  {prog} login")
 
 
 if __name__ == "__main__":

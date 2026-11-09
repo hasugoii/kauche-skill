@@ -39,6 +39,14 @@ _CACHE = os.environ.get("KAUCHE_ACCOUNT_CACHE",
 import json  # noqa: E402
 
 
+class LoginRequired(Exception):
+    """No signed-in session yet. Prompt the user to run `kauche login`."""
+
+
+class SessionExpired(Exception):
+    """The refresh token is no longer valid. Prompt the user to run `kauche login`."""
+
+
 class AccountSession:
     """A persistent non-anonymous Firebase session. Has `.id_token()` like the
     anonymous auth, so it drops straight into `KaucheAPI(auth=...)`."""
@@ -49,6 +57,7 @@ class AccountSession:
         self._id_token = None
         self._refresh_token = None
         self._expires_at = 0.0
+        self.email = None
         self._load()
 
     # ---- persistence ----
@@ -60,6 +69,7 @@ class AccountSession:
                 self._id_token = d.get("id_token")
                 self._refresh_token = d.get("refresh_token")
                 self._expires_at = d.get("expires_at", 0.0)
+                self.email = d.get("email")
         except (OSError, ValueError):
             pass
 
@@ -67,7 +77,8 @@ class AccountSession:
         os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
         with open(self.cache_path, "w", encoding="utf-8") as f:
             json.dump({"api_key": self.api_key, "id_token": self._id_token,
-                       "refresh_token": self._refresh_token, "expires_at": self._expires_at}, f)
+                       "refresh_token": self._refresh_token, "expires_at": self._expires_at,
+                       "email": self.email}, f)
         os.chmod(self.cache_path, 0o600)
 
     def _store(self, id_token, refresh_token, expires_in):
@@ -89,9 +100,10 @@ class AccountSession:
 
     # ---- establishing a session (constructors) ----
     @classmethod
-    def from_tokens(cls, id_token: str, refresh_token: str, expires_in=3600, **kw) -> "AccountSession":
+    def from_tokens(cls, id_token: str, refresh_token: str, expires_in=3600, email=None, **kw) -> "AccountSession":
         """Seed directly from an idToken + refreshToken (e.g. from the web-login flow)."""
         s = cls(**kw)
+        s.email = email
         s._store(id_token, refresh_token, expires_in)
         return s
 
@@ -131,14 +143,24 @@ class AccountSession:
 
     # ---- token use ----
     def _refresh(self):
-        d = _post(f"{_SECURETOKEN}/token?key={self.api_key}",
-                  {"grant_type": "refresh_token", "refresh_token": self._refresh_token})
+        import urllib.error
+        try:
+            d = _post(f"{_SECURETOKEN}/token?key={self.api_key}",
+                      {"grant_type": "refresh_token", "refresh_token": self._refresh_token})
+        except urllib.error.HTTPError as e:
+            # refresh token revoked/expired/invalid -> session is dead; must log in again
+            self.logout()
+            raise SessionExpired("Your KAUCHE session has expired. Please log in again "
+                                 "(`kauche login`).") from e
         self._store(d["id_token"], d.get("refresh_token", self._refresh_token), d.get("expires_in", "3600"))
 
     def id_token(self) -> str:
+        """A valid ID token. Auto-refreshes transparently. Raises LoginRequired if there
+        is no session, or SessionExpired if the refresh token is no longer valid — in both
+        cases the caller should prompt the user to run `kauche login`."""
         if self._id_token and time.time() < self._expires_at:
             return self._id_token
         if not self._refresh_token:
-            raise RuntimeError("Not logged in. Use AccountSession.from_* or `kauche login` first.")
+            raise LoginRequired("Not logged in. Run `kauche login` (opens a browser).")
         self._refresh()
         return self._id_token

@@ -122,4 +122,4 @@ def run_web_login(port: int = 0, timeout: int = 300, open_browser: bool = True) 
     srv.shutdown()
     if not got:
         raise TimeoutError("web login timed out; no token received")
-    return AccountSession.from_tokens(result["idToken"], result["refreshToken"])
+    return AccountSession.from_tokens(result["idToken"], result["refreshToken"], email=result.get("email") or None)
