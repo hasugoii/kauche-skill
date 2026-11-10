@@ -1,5 +1,9 @@
 # Phân tích TOÀN BỘ review さつまいもん家 (khoai lang) — nỗi đau + điều khen
 
+> ⚠️ **さつまいもん家 là SHOP CỦA MÌNH** (không phải đối thủ). Đây là **audit QA từ chính khách của
+> shop**: "nỗi đau" = lỗi cần sửa, "điều khen" = thế mạnh cần giữ. Hành động: `khoailang-shop-plan.md`;
+> đo kết quả: `memory/ISSUES.md`.
+
 Ngày: 2026-11-10. Nguồn: kéo hết **1.378/1.393 review** (listing mix 5kg ¥2.320, product_id
 9030507036840) qua RPC, đọc đầy đủ chữ. Script: `scratchpad/fullpull.py` + `analyze.py`.
 

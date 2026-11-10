@@ -1,4 +1,11 @@
-# Listing khoai lang (さつまいも) — đánh vào khe hở của さつまいもん家
+# Listing khoai lang (さつまいも)
+
+> ⚠️ **ĐÃ THAY KHUNG (2026-11-10):** さつまいもん家 **là shop của chính anh**, không phải đối thủ.
+> File này viết ban đầu với giả định "đánh đối thủ" nên KHÔNG còn đúng — dùng bản mới
+> **`khoailang-shop-plan.md`** (cải thiện vận hành + viết lại listing cho chính shop). Giữ file này
+> chỉ để tham khảo ý tưởng điểm bán (chống mốc, ghi giống, chọn cỡ), đọc với lưu ý trên.
+
+## (Cũ) Đánh vào khe hở của さつまいもん家 — giả định sai, giữ để tham khảo
 
 Ngày soạn: 2026-11-09. Mục tiêu: chiếm thị phần ô khoai lang trên Kauche bằng cách
 bịt đúng chỗ đối thủ dẫn đầu đang bị chê.

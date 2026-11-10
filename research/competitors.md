@@ -10,7 +10,10 @@ Nguồn: `scratchpad/competitors.py` + `weak2.py`.
 
 ## 🍠 Khoai lang (search: さつまいも)
 
-**Hàng tươi (củ 5kg) — đây là ô mình nhắm:**
+> ⚠️ **さつまいもん家 trong bảng này là SHOP CỦA MÌNH** (không phải đối thủ). Hướng đi khoai lang →
+> `khoailang-shop-plan.md` (cải thiện shop), không phải "chen vào".
+
+**Hàng tươi (củ 5kg):**
 
 | Shop | Review | ★ | Giá | 1-2★ | SP |
 |---|---:|---:|---:|---:|---|
