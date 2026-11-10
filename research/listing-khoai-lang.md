@@ -3,6 +3,16 @@
 Ngày soạn: 2026-11-09. Mục tiêu: chiếm thị phần ô khoai lang trên Kauche bằng cách
 bịt đúng chỗ đối thủ dẫn đầu đang bị chê.
 
+> 📊 **Bổ sung 2026-11-10 (sau khi đọc TOÀN BỘ 1.378 review đối thủ — xem `reviews-satsumaimonya.md`):**
+> Đối thủ bán 訳あり = xổ số (khách tự gọi là "運"). Ngoài mốc/thối, phải xử lý thêm 3 điều khách
+> đã chê/khen sẵn mà đối thủ làm hên xui — mình làm chắc chắn thì thắng:
+> 1. **Chọn theo CỠ:** nhiều củ cỡ 焼き芋 chuẩn, KHÔNG toàn củ khổng lồ (lời chê lớn: "to quá không
+>    nướng được"). Khách khen "to & nhiều" nhưng ghét "to vô dụng".
+> 2. **GHI RÕ GIỐNG** trên bao (紅はるか) — "品種不明" là lời chê lặp đi lặp lại.
+> 3. **GIAO NHANH (≤2 ngày) + phản hồi khiếu nại trong 24h** — giao nhanh được khen 21%; đối thủ
+>    hay im lặng khi khách than → một lời đáp nhanh giữ được cả sao 5.
+> (Đã lồng vào mô tả mục 2 và vận hành mục 5 bên dưới.)
+
 ## 0. Căn cứ (vì sao đánh vào đây)
 
 Đối thủ dẫn đầu **さつまいもん家** — 1393 review, ★4.4, bán ¥2120 (5kg 訳あり 品種おまかせ,
@@ -60,9 +70,13 @@ Keyword bắt buộc giữ: `紅はるか` `さつまいも` `5kg` `焼き芋` `
 一本一本、人の目で選別した「選別品」です。
 形の悪いもの・傷のあるものは除いてお届けします。
 
-■ 蜜たっぷりの紅はるか
-しっとり系で甘みが強い人気品種。焼き芋・干し芋・スイートポテトに最適。
-2週間ほど追熟させてから発送するので、届いてすぐ甘いです。
+■ 蜜たっぷりの紅はるか（品種を明記）
+しっとり系で甘みが強い人気品種「紅はるか」。何が届くか分からない不安はありません。
+焼き芋・干し芋・スイートポテトに最適。2週間ほど追熟させてから発送するので、届いてすぐ甘いです。
+
+■ 焼き芋にちょうどいいサイズを選別
+「大きすぎて焼き芋にできない」を無くすため、使いやすいサイズを中心にお届け。
+特大すぎる芋は除き、焼き芋・お料理にちょうどいい芋をたっぷり入れます。
 
 ■ カビを防ぐ通気性梱包
 芋は湿気でカビます。1本ずつ新聞紙で包み、通気性のある箱でお届け。
@@ -71,9 +85,9 @@ Keyword bắt buộc giữ: `紅はるか` `さつまいも` `5kg` `焼き芋` `
 ■ 産地直送で新鮮
 収穫後すぐ、農家から直接お届けします。
 
-【内容量】紅はるか 5kg（箱込）
+【内容量】紅はるか 5kg（箱込）／焼き芋に使いやすいサイズ中心
 【保存方法】新聞紙に包み、13〜15℃の風通しの良い場所で常温保存
-【お届け】ご注文から◯営業日以内に発送
+【お届け】最短翌日〜2日でスピード発送。万が一の不具合はご連絡後24時間以内に対応します
 ```
 
 > Chỗ `◯営業日` điền số ngày thật. Nếu cần ủ 追熟 thì ghi rõ "2週間追熟後に発送" để khách không
