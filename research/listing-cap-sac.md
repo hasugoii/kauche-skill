@@ -3,6 +3,14 @@
 Ngày soạn: 2026-11-10. Mục tiêu: chiếm ô cáp sạc iPhone trên Kauche bằng cách bịt đúng
 hai lỗi đối thủ dẫn đầu đang bị chê.
 
+> ⚠️ **SỬA (2026-11-10, sau khi quét rộng — xem `competitors.md`):** đối thủ dẫn đầu THẬT là
+> **TSUDOI KAUCHE店** (592rv), KHÔNG phải ブルレンジ (135rv, chỉ #3). TSUDOI **đã có 「30日保証」
+> + bản USB-C + giá ¥380** → "bảo hành/độ bền là chỗ trống" là **SAI**. Khe hở còn lại hẹp hơn:
+> review TSUDOI than **đầu cắm gãy ở gốc (根元) sau ~2 tháng** (ngoài hạn BH 30 ngày) + **tiếp xúc
+> chập chờn**. → Góc đánh ĐÚNG: **① 1 năm bảo hành (phủ cả 断線/gãy sau 30 ngày) ② gia cố GỐC đầu
+> cắm chống gãy ③ tiếp xúc ổn định.** Giá phải tính kỹ vì leader ¥380. Phần dưới vẫn dùng được
+> nhưng đọc kèm chỉnh này; ô này giờ là **ưu tiên #2 sau khoai lang**, không còn "dễ thắng".
+
 ## 0. Căn cứ (vì sao đánh vào đây)
 
 Đối thủ dẫn đầu **ブルレンジザッカストア** — 135rv ★4.4, bán ¥689 (2m×2本) và ¥619 (1m×2本).

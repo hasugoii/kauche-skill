@@ -3,6 +3,13 @@
 Ngày soạn: 2026-11-10. ⚠️ Đây là ô **khó** hơn khoai lang/cáp sạc: có lỗ hổng nhưng đối thủ
 dẫn đầu cực mạnh. Đọc kỹ phần phản biện (mục 4) trước khi quyết.
 
+> ⛔ **SỬA → BỎ ô này (2026-11-10, sau khi quét rộng — xem `competitors.md`):** góc "2kg保証 ¥1.280"
+> của em **ĐÃ BỊ PHÁ GIÁ SẴN** — chính nhóm mega-vendor 市川/マイファーマーズ (**124.163 review**,
+> MỘT sản phẩm bán nhiều biến thể cân) **đã bán 2kg giá ¥980** và đã dùng chữ **補償** (1kg+補償分600g).
+> Họ có chê 傷んでいた/thối thật, nhưng không ai out-review nổi 124k và không beat được ¥980 mà còn
+> lãi. **Khuyến nghị: bỏ ô hành tây, dồn lực cho khoai lang + cáp sạc.** Phần dưới giữ lại để tham
+> khảo nếu sau này điều kiện thay đổi (vd anh có nguồn hành giá cực tốt).
+
 ## 0. Căn cứ
 
 Hai đối thủ chính:
