@@ -11,6 +11,18 @@ hai lỗi đối thủ dẫn đầu đang bị chê.
 > cắm chống gãy ③ tiếp xúc ổn định.** Giá phải tính kỹ vì leader ¥380. Phần dưới vẫn dùng được
 > nhưng đọc kèm chỉnh này; ô này giờ là **ưu tiên #2 sau khoai lang**, không còn "dễ thắng".
 
+> 📊 **Bổ sung 2026-11-10 (đọc TOÀN BỘ ~1.000 review TSUDOI+ブルレンジ — xem `reviews-cables.md`):**
+> 1. **Giá ¥880 cũ là SAI** — thị trường này "rẻ" là điểm khen #1 (22–33%). Về sát dải **¥690–790/2本**
+>    (ngang ブルレンジ), đánh bằng độ bền + BH thật, KHÔNG phải ở giá cao.
+> 2. **Bỏ khoe "急速充電"** khỏi điểm bán chính — khách khen sạc nhanh chỉ 1–3%, và "急速 nói quá" là
+>    nguồn chê 1★ ("急速と書いてあるのに低速"). Chỉ ghi 急速 nếu CHẮC; không thì nói "普通充電・データ転送対応".
+> 3. **Thêm bản 2m** — độ dài 2m được khen rất mạnh (ブルレンジ 31%).
+> 4. **Ghi SPEC trung thực** — gửi sai đầu cắm (タイプ nhầm) là lời chê lặp lại; ghi rõ + chọn biến thể kỹ.
+> 5. **BH phải ĐƯỢC thực hiện thật** — leader có 30日保証 nhưng xử lý hên xui (có người bị lơ "返信なし").
+>    Góc thắng = 1 năm BH + đổi/hoàn trong 24h **làm thật**.
+> ⚠️ Độ chắc ăn của ô này **thấp hơn khoai lang nhiều** — chỉ vào nếu nhập được cáp bền thật ở giá đủ
+> thấp để bán ~¥690–790 vẫn lãi; nếu không, để sau.
+
 ## 0. Căn cứ (vì sao đánh vào đây)
 
 Đối thủ dẫn đầu **ブルレンジザッカストア** — 135rv ★4.4, bán ¥689 (2m×2本) và ¥619 (1m×2本).
@@ -111,8 +123,9 @@ Tông ảnh: nền tối/xám sang, ánh sáng gọn làm nổi sợi bện. Tr�
 
 ## 4. Giá — ĐỀ XUẤT
 
-**ĐỀ XUẤT:** Mở bán **¥880 / 2本セット** (ナイロン編込 + bảo hành 1 năm đổi khi đứt).
-Mốc nâng lên **¥980** nếu 14 ngày đầu ★ cao (xem ĐO LƯỜNG).
+**ĐỀ XUẤT (đã sửa 2026-11-10 theo dữ liệu review — xem khối 📊 đầu file):** Mở bán trong dải
+**¥690–790 / 2本セット** (ナイロン編込 + bảo hành 1 năm đổi khi đứt), KHÔNG phải ¥880.
+~~¥880/¥980~~ là sai với thị trường "giá-trước" này (rẻ = điểm khen #1, leader ¥380/1本).
 
 **CĂN CỨ:**
 - Đối thủ: ¥619 (1m×2) và ¥689 (2m×2) — cáp trơn, review tự tố "đứt sau 1 tuần".
