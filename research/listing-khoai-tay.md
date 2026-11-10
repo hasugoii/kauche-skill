@@ -3,6 +3,10 @@
 Ngày soạn: 2026-11-10. **Đọc mục 0 trước.** Khác 3 ô kia, ô này đối thủ gần như không bị chê —
 nên chiến thuật "bịt lỗ hổng" KHÔNG áp dụng được. Đây là ô **yếu nhất** trong 4 cơ hội.
 
+> ✅ **Đã đọc HẾT review xác nhận (2026-11-10 — `reviews-veggies.md`):** 天地 (381rv ★4.8) chỉ **3**
+> review xấu cả đời, ファームかずと (354rv) chỉ **6** (1★=0), tỉ lệ mua lại rất cao, đã có người rẻ
+> ¥1.800/5kg. Không có nỗi đau để đánh + đã bị undercut. Giữ verdict **BỎ.**
+
 ## 0. Căn cứ — vì sao đây là ô khó
 
 Hai đối thủ top:

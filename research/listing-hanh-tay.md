@@ -9,6 +9,10 @@ dẫn đầu cực mạnh. Đọc kỹ phần phản biện (mục 4) trước k
 > Họ có chê 傷んでいた/thối thật, nhưng không ai out-review nổi 124k và không beat được ¥980 mà còn
 > lãi. **Khuyến nghị: bỏ ô hành tây, dồn lực cho khoai lang + cáp sạc.** Phần dưới giữ lại để tham
 > khảo nếu sau này điều kiện thay đổi (vd anh có nguồn hành giá cực tốt).
+>
+> ✅ **Đã đọc review xác nhận (2026-11-10 — `reviews-veggies.md`):** điều khách khen #1 là **to+nhiều+rẻ
+> (48–52%)** — đúng thứ giant đã làm tốt nhất. Nỗi đau (thối/thiếu cân/hỗ trợ chặt) có thật nhưng không
+> đủ bù rào quy mô 124k + giá. Giữ verdict **BỎ.**
 
 ## 0. Căn cứ
 
