@@ -82,7 +82,9 @@ sức ép giá ¥380.
 **bị phá giá sẵn**. Chê của họ (傷んでいた/中身が当たってる) có thật, nhưng **không ai out-review nổi
 124k, cũng không beat được ¥980 mà còn lãi.**
 
-→ **Bỏ ô hành tây.** (nâng mức cảnh báo so với file trước: "ưu tiên sau" → "bỏ").
+→ ~~**Bỏ ô hành tây.**~~ ⚠️ **ĐÃ RÚT (2026-11-10): shop MÌNH đang bán hành tây** (3 listing, 0 review).
+Không phải "mở hay không" mà là "sửa cái đang có". Xem `shop-scorecard.md` + `listing-hanh-tay.md`.
+Thực tế: ô khó nhất, làm tối thiểu (coupon + viết lại + hạ giá vừa) rồi đo, không đổ lực làm trụ.
 
 ---
 
@@ -97,8 +99,10 @@ sức ép giá ¥380.
 | 天地の恵み | 170 | 4.4 | ¥2.680 | 9 | 5kg 華しべつ |
 | TSUDOI | 27 | 4.7 | ¥780 | 0 | snack |
 
-→ Hàng củ: 天地の恵み + ファームかずと đều **★4.7-4.8, review sạch**; ファームかずと còn **rẻ hơn**
-(¥1.800/5kg). **Không có lỗi để đánh + đã bị undercut.** → **Bỏ ô khoai tây** (xác nhận lại).
+→ Hàng củ: 天地の恵み + ファームかずと đều **★4.7-4.8, review sạch**; ファームかずと còn rẻ hơn (¥1.800/5kg).
+~~**Bỏ ô khoai tây.**~~ ⚠️ **ĐÃ RÚT (2026-11-10): shop MÌNH đang bán khoai tây** 北海道産, **★4.9-5.0**
+(cao hơn cả 天地 ★4.8) nhưng chỉ 25 review → **ngọc ẩn**, chỉ thiếu visibility. Đây là ô **đáng đẩy nhất**,
+không phải bỏ. Xem `shop-scorecard.md` + `listing-khoai-tay.md`.
 
 ---
 
@@ -111,5 +115,6 @@ sức ép giá ¥380.
 | 🧅 Hành tây | Khó, ưu tiên sau | **SỬA mạnh hơn → BỎ** — 2kg ¥980 + 補償 đã tồn tại, 124k review |
 | 🥔 Khoai tây | Khoan vào | **GIỮ → BỎ** — sạch + đã bị undercut ¥1.800 |
 
-**Thứ tự ưu tiên mới:** 🍠 **Khoai lang (số 1, rõ ràng)** › 🔌 Cáp sạc (số 2, đổi góc sang BH dài +
-gia cố gốc) › ❌ Hành tây, khoai tây: bỏ. Có thể soi thêm: ô **干し芋** (hàng chế biến, đối thủ yếu).
+**Thứ tự ưu tiên mới (shop ĐANG bán cả 3 ô nông sản — xem `shop-scorecard.md`):** 🍠 **Khoai lang (số 1,
+giữ đầu)** › 🥔 **Khoai tây (số 2 — ngọc ẩn ★4.95, đẩy visibility)** › 🧅 Hành tây (vá listing + đo, ô khó)
+· 🔌 Cáp sạc (nghiên cứu mở mới, đổi góc BH dài + gia cố gốc). Có thể soi thêm: ô **干し芋** (đối thủ yếu).
